@@ -10,6 +10,3 @@ package orsen.models
 class Token(sentenceId: Integer, id: Integer, text: String) {
   // STUB
 }
-
-
-// vim: set ts=4 sw=4 et:

@@ -9,5 +9,3 @@ package orsen.models
 class Entity(id: Integer, name:String) {
   // STUB
 }
-
-// vim: set ts=4 sw=4 et:
