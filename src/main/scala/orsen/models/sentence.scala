@@ -8,15 +8,15 @@ package orsen.models
   * @param (optional) delim the delimitor character that the sentence is
   *        tokenized by.  Defaults to a single space (" ") character.
   */
-class Sentence(sId: Integer, sText: String, delim: String = " ") {
+class Sentence(id: Integer, text: String, delim: String = " ") {
 
   // the global id of this sentence
-  def id = sId
+  def id = this.id
   // the raw tokenized text of this sentence
-  def text = sText
+  def text = this.text
   // a list of all tokens in this sentence
-  def tokens = sText.split(delim)
+  def tokens = this.text.split(delim)
 
-  override def toString() = sText
+  override def toString() = text
 
 }

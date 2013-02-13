@@ -35,6 +35,7 @@ trait DataInterface {
   /** Quick sanity test
     */
   def main(arguments: Array[String]) {
+    println("DataInterface sanity check")
     var it = this.getAllSentences()
     while (it.hasNext) {
       println(it.next.tokens)
