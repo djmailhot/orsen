@@ -1,6 +1,7 @@
 package orsen.datainterface
 
 import orsen.models.Sentence
+import orsen.models.Entity
 
 trait DataInterface {
 
@@ -16,19 +17,62 @@ trait DataInterface {
       "4795    ¡ ¡ Fourteen out of Angola 's 150 political parties and coalitions took part in the elections to vie for the 220 parliamentary seats .",
       "4796    ¡ ¡")
 
+  var mockedRawEntities = Array(
+      "Luanda",
+      "Angola",
+      "Popular Movement for the Liberation of Angola")
 
   /** Returns an iterator over all sentences in the data corpus.
     * Sentences are represented by Sentence model objects.
     *
     * @returns an iterator of Sentence objects
     */
-  def getAllSentences(): Iterator[Sentence] = {
+  def getSentences(): Iterator[Sentence] = {
     def mockedRawDataParser(s: String): Sentence = {
       var split = s.split("    ")
       return new Sentence(split(0).toInt, split(1))
     }
 
     return mockedRawData.map(s => mockedRawDataParser(s)).iterator
+  }
+
+
+  /** Returns the sentence that is associated with this global sentence id.
+    *
+    * @returns a Sentence object
+    */
+  def getSentenceById(sentenceId: Integer): Sentence {
+    // STUB
+  }
+
+
+
+  /** Returns an iterator over all existing entities in the entity database.
+    * Entities are represented by Entity model objects.
+    *
+    * @returns an iterator of Entity objects
+    */
+  def getEntities(): Iterator[Entity] {
+    // STUB
+  }
+
+
+
+  /** Returns the Entity that is associated with this global entity id.
+    *
+    * @returns an Entity object
+    */
+  def getEntityById(entityId: Integer): Entity {
+    // STUB
+  }
+
+
+  /** Returns a list of Entities that matches this name.
+    *
+    * @returns a List of Entity objects
+    */
+  def getEntityByName(name: String): List[Entity] {
+    // STUB
   }
 
 
