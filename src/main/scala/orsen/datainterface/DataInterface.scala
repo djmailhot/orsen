@@ -2,7 +2,6 @@ package orsen.datainterface
 
 import orsen.models.Sentence
 import orsen.models.Entity
-import orsen.models.Term
 
 trait DataInterface {
 
@@ -31,7 +30,7 @@ trait DataInterface {
   def getSentences(): Iterator[Sentence] = {
     def mockedRawDataParser(s: String): Sentence = {
       var split = s.split("    ")
-      return new Sentence(split(0).toInt, split(1))
+      return new Sentence(split(0).toInt, split(1).split(" "))
     }
 
     return mockedRawData.map(s => mockedRawDataParser(s)).iterator
@@ -72,7 +71,7 @@ trait DataInterface {
     */
   def main(arguments: Array[String]) {
     println("DataInterface sanity check")
-    var it = this.getAllSentences()
+    var it = this.getSentences()
     while (it.hasNext) {
       println(it.next.tokens)
     }

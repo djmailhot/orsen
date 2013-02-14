@@ -6,14 +6,14 @@ package orsen.models
   * @param id the Sentence's unique id
   * @param tokens an array of tokenized text making up the Sentence.  
   */
-class Sentence(id: Integer, tokens: Array[String]) {
+class Sentence(sentenceId: Integer, sentenceTokens: Array[String]) {
 
   // the global id of this sentence
-  def id = this.id
+  def id: Integer = sentenceId
   // the raw tokenized text of this sentence
-  def text = this.tokens.mkString(" ")
+  def text: String = sentenceTokens.mkString(" ")
   // a list of all tokens in this sentence
-  def tokens = this.tokens
+  def tokens: Array[String] = sentenceTokens
 
   override def toString() = text
 }

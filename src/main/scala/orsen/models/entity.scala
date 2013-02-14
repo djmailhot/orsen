@@ -6,11 +6,11 @@ package orsen.models
   * @param id the Entity's unique id
   * @param name the Entity's name
   */
-class Entity(id: Integer, name:String) {
+class Entity(entityId: Integer, entityName: String) {
 
   // the global id of this entity
-  def id = this.id
+  def id: Integer = entityId
   // the raw tokenized text of this entity
-  def name = this.name
+  def name: String = entityName
 
 }
