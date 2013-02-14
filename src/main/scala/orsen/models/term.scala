@@ -6,12 +6,10 @@ package orsen.models
   * @constructor create a new Term with a unique name, and a list of tokens
   * @param tokens the list of tokens that make up this Term
   */
-class Term(tokens: Array[String]) {
+class Term(name: String) {
   
   // the unique name of this Term
-  def name = tokens.mkString(" ")
-  // a list of all tokens in this Term
-  def tokens = tokens.clone()
+  def name = this.name
 
   override def toString() = name
 }

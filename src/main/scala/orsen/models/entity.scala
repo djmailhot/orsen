@@ -7,5 +7,10 @@ package orsen.models
   * @param name the Entity's name
   */
 class Entity(id: Integer, name:String) {
-  // STUB
+
+  // the global id of this entity
+  def id = this.id
+  // the raw tokenized text of this entity
+  def name = this.name
+
 }
