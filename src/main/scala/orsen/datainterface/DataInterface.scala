@@ -2,6 +2,7 @@ package orsen.datainterface
 
 import orsen.models.Sentence
 import orsen.models.Entity
+import orsen.models.Term
 
 trait DataInterface {
 
@@ -63,15 +64,6 @@ trait DataInterface {
     * @returns an Entity object
     */
   def getEntityById(entityId: Integer): Entity {
-    // STUB
-  }
-
-
-  /** Returns a list of Entities that matches this name.
-    *
-    * @returns a List of Entity objects
-    */
-  def getEntityByName(name: String): List[Entity] {
     // STUB
   }
 
