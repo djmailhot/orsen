@@ -16,4 +16,7 @@ class Sentence(sentenceId: Integer, sentenceTokens: Array[String]) {
   def tokens: Array[String] = sentenceTokens
 
   override def toString() = text
+  // override def equals(other: Sentence): boolean = {
+  //   this.id == other.id && this.text == other.text
+  // }
 }
