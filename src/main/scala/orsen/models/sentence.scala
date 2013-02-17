@@ -1,19 +1,27 @@
 package orsen.models
 
+// TODO: Come from arbitrary DataInterface specified in a config file
+import orsen.datainterface.stub.StubDataInterface
+
 /** A Sentence that represents one sentence in a body of text. A sentence
   * more formally consists of an ordered list of tokens
   *
   * @param id the Sentence's unique id
   * @param tokens an array of tokenized text making up the Sentence.  
   */
-class Sentence(sentenceId: Integer, sentenceTokens: Array[String]) {
+class Sentence(sentenceId: Integer, _termIds: Array[Integer]) {
 
   /** The unique id of this Sentence */
   def id: Integer = sentenceId
-  /** The raw tokenized text of this Sentence */
-  def text: String = sentenceTokens.mkString(" ")
   /** A Array of all tokens in this Sentence */
-  def tokens: Array[String] = sentenceTokens
+  def termIds: Array[Integer] = _termIds
+  /** The raw tokenized text of this Sentence */
+  // def getText: String = sentenceTokens.mkString(" ")
 
-  override def toString() = text
+  def termIterator(): Iterator[Term] = {
+    // TODO: Come from arbitrary DataInterface specified in a config file
+    StubDataInterface.getTermsOfSentence(this.id)
+  }
+
+  override def toString() = "<Sentence|id: %d>".format(this.id)
 }

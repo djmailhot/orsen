@@ -29,14 +29,12 @@ class StubDatInterfaceTest extends FunSuite with BeforeAndAfter {
     var sent = StubDataInterface.getSentenceById(4787)
     assert(sent.isInstanceOf[Sentence])
     assert(sent.id == 4787)
-    assert(sent.text == "LUANDA , Sept. 17 -LRB- Xinhua -RRB-")
   }
 
   test("Retrieve the highest id sentence works") {
     var sent = StubDataInterface.getSentenceById(4796)
     assert(sent.isInstanceOf[Sentence])
     assert(sent.id == 4796)
-    assert(sent.text == "¡ ¡")
   }
 
   /************
@@ -70,5 +68,17 @@ class StubDatInterfaceTest extends FunSuite with BeforeAndAfter {
     assert(ent.id == 3)
     assert(ent.name == "Popular Movement for the Liberation of Angola")
   }
+
+
+  /*********
+   * Terms *
+   *********/
+
+   test("The terms iterator returns Term objects") {
+      var it = StubDataInterface.getTerms
+      while (it.hasNext) {
+        assert(it.next.isInstanceOf[Term])
+      }
+   }
 
 }

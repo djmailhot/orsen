@@ -13,12 +13,13 @@ trait DataInterface {
     */
   def getSentences(): Iterator[Sentence]
 
-  /** Returns the sentence that is associated with this global sentence id.
+  /** Returns the sentence that is associated with this sentenceId.
     *
     * @return a Sentence object
-    * @throws NoSuchElementException if entityId is invalid
+    * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
   def getSentenceById(sentenceId: Integer): Sentence
+
   /** Returns an iterator over all existing entities in the entity database.
     * Entities are represented by Entity model objects.
     *
@@ -26,10 +27,10 @@ trait DataInterface {
     */
   def getEntities(): Iterator[Entity]
 
-  /** Returns the Entity that is associated with this global entity id.
+  /** Returns the Entity that is associated with this entityId.
     *
     * @return an Entity object
-    * @throws NoSuchElementException if entityId is invalid
+    * @throws NoSuchElementException if entityId does not match any Entity
     */
   def getEntityById(entityId: Integer): Entity
 
@@ -38,12 +39,21 @@ trait DataInterface {
     *
     * @return an iterator of Term objects
     */
-  // def getTerms(): Iterator[Term]
+  def getTerms(): Iterator[Term]
 
-  /** Returns an iterator over all terms in the data corpus.
+  /** Returns an iterator over all terms in the given sentence
     * Terms are represented by Term model objects.
     *
     * @return an iterator of Term objects
+    * @throws NoSuchElementException if sentenceId does not match any Sentence
     */
-  // def getTermById(termId: Integer): Iterator[Term]
+  def getTermsOfSentence(sentenceId: Integer): Iterator[Term]
+
+  /** Returns the Term that is associated with this termId
+    * Terms are represented by Term model objects.
+    *
+    * @return an iterator of Term objects
+    * @throws NoSuchElementException if termId does not match any Term
+    */
+  def getTermById(termId: Integer): Term
 }
