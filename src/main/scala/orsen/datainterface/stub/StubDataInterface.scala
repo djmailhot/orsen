@@ -27,10 +27,6 @@ object StubDataInterface extends DataInterface {
     return mockedSentences.iterator
   }
 
-  /** Returns the sentence that is associated with this global sentence id.
-    *
-    * @returns a Sentence object
-    */
   def getSentenceById(sentenceId: Integer): Sentence = {
     if (sentenceId < 4787 || 4796 < sentenceId) {
       throw new NoSuchElementException()
@@ -40,19 +36,10 @@ object StubDataInterface extends DataInterface {
 
   }
 
-  /** Returns an iterator over all existing entities in the entity database.
-    * Entities are represented by Entity model objects.
-    *
-    * @returns an iterator of Entity objects
-    */
   def getEntities(): Iterator[Entity] = {
     return mockedEntities.iterator
   }
 
-  /** Returns the Entity that is associated with this global entity id.
-    *
-    * @returns an Entity object
-    */
   def getEntityById(entityId: Integer): Entity = {
     if (entityId < 1 || entityId > 3) {
       throw new NoSuchElementException()
@@ -60,4 +47,8 @@ object StubDataInterface extends DataInterface {
 
     return mockedEntities(entityId - 1)
   }
+
+  def getTerms(): Iterator[Entity] = null
+
+  def getTermById(termId: Integer): Entity = null
 }

@@ -8,15 +8,12 @@ package orsen.models
   */
 class Sentence(sentenceId: Integer, sentenceTokens: Array[String]) {
 
-  // the global id of this sentence
+  /** The unique id of this Sentence */
   def id: Integer = sentenceId
-  // the raw tokenized text of this sentence
+  /** The raw tokenized text of this Sentence */
   def text: String = sentenceTokens.mkString(" ")
-  // a list of all tokens in this sentence
+  /** A Array of all tokens in this Sentence */
   def tokens: Array[String] = sentenceTokens
 
   override def toString() = text
-  // override def equals(other: Sentence): boolean = {
-  //   this.id == other.id && this.text == other.text
-  // }
 }

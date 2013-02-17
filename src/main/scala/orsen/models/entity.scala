@@ -8,9 +8,9 @@ package orsen.models
   */
 class Entity(entityId: Integer, entityName: String) {
 
-  // the global id of this entity
+  /** The unique id of this Entity */
   def id: Integer = entityId
-  // the raw tokenized text of this entity
+  /** The name of this Entity */
   def name: String = entityName
 
 }
