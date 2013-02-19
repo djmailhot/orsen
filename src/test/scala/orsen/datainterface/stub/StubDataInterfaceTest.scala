@@ -5,7 +5,7 @@ import orsen.models._
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
 
-class StubDatInterfaceTest extends FunSuite with BeforeAndAfter {
+class StubDataInterfaceTest extends FunSuite with BeforeAndAfter {
 
   /*************
    * Sentences *
