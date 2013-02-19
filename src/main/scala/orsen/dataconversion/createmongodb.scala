@@ -21,23 +21,24 @@ object CreateMongoDB {
       val id: Integer = parse(0).toInt
 
       val query: MongoDBObject = MongoDBObject("_id" -> id)
-      collection.findOne(query) match {
-        case Some(dbRecord) => {
-          // if there is an object for this sentence id, update it in the collection
-          println("old record" + dbRecord)
-          parseFunc(line, dbRecord)
-          println("new record" + dbRecord)
-          collection.update(query, dbRecord)
-        }
-        case None => {
-          // if there is no object for this sentence id, add a new object to the collection
-          val dbRecord = MongoDBObject("_id" -> id)
+      var dbRecord: MongoDBObject = collection.findOne(query) match {
+        case Some(record) => record
+        case None => null
+      }
 
-          println("old record" + dbRecord)
-          parseFunc(line, dbRecord)
-          println("new record" + dbRecord)
-          collection += dbRecord
-        }
+      if (dbRecord == null) {
+        // if there is no object for this sentence id, add a new object to the collection
+        dbRecord = MongoDBObject("_id" -> id)
+        println("old record" + dbRecord)
+        parseFunc(line, dbRecord)
+        println("new record" + dbRecord)
+        collection += dbRecord
+      } else {
+        // if there is an object for this sentence id, update it in the collection
+        println("old record" + dbRecord)
+        parseFunc(line, dbRecord)
+        println("new record" + dbRecord)
+        collection.update(query, dbRecord)
       }
     }
   }
@@ -63,8 +64,10 @@ object CreateMongoDB {
     val mongoDB: MongoDB = MongoClient()("orsen")
 
     val sentencesColl: MongoCollection = mongoDB("sentences")
+    sentencesColl.ensureIndex("_id")
 
     extractData(dataPath + "sentences.text", parseText, sentencesColl)
+    extractData(dataPath + "sentences.tokens", parseTokens, sentencesColl)
   }
 
 }
