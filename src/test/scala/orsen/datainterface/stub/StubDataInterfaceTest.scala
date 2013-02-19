@@ -85,6 +85,9 @@ class StubDatInterfaceTest extends FunSuite with BeforeAndAfter {
     intercept[NoSuchElementException] {
        StubDataInterface.getTermsOfSentence(-1)
     }
+    intercept[NoSuchElementException] {
+       StubDataInterface.getTermsOfSentence(208)
+    }
   }
 
   test("getTermById throws NoSuchElementException with invalid id") {
@@ -98,6 +101,13 @@ class StubDatInterfaceTest extends FunSuite with BeforeAndAfter {
     assert(term.id == 0)
     assert(term.name == "LUANDA")
     assert(term.sentenceId == 4787)
+  }
+
+  test("getTermById retrieving highest id works") {
+    var term = StubDataInterface.getTermById(207)
+    assert(term.id == 207)
+    assert(term.name == "¡")
+    assert(term.sentenceId == 4796)
   }
 
 }
