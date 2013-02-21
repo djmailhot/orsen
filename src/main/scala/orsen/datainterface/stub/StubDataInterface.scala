@@ -1,13 +1,20 @@
 package orsen.datainterface.stub
 
+import scala.collection.mutable.ArrayBuffer
 import orsen.datainterface.DataInterface
 import orsen.models._
 
 object StubDataInterface extends DataInterface {
-  var mockedSentences = (4787 to 4796 toArray).map((id) => new Sentence(id, Array[Integer]()))
 
+  val mockedEntities = Array(
+      new Entity(1, "Luanda"),
+      new Entity(2, "Angola"),
+      new Entity(3, "Popular Movement for the Liberation of Angola")
+  )
 
-  var text = Array(
+  val mockedSentences = (4787 to 4796 toArray).map((id) => new Sentence(id, Array[Integer]()))
+
+  val text = Array(
       Array("LUANDA", ",", "Sept.", "17", "-LRB-", "Xinhua", "-RRB-"),
       Array("Angola", "'s", "ruling", "party", "the", "MPLA", "gained", "81.64", "percent", "of", "the", "votes", "in", "the", "final", "results", "of", "the", "country", "'s", "parliamentary", "elections", ",", "the", "Angolan", "electoral", "commission", "announced", "late", "Tuesday", "."),
       Array("It", "was", "Angola", "'s", "first", "election", "since", "a", "27-year", "civil", "war", "ended", "in", "the", "country", "in", "2002", "."),
@@ -20,22 +27,17 @@ object StubDataInterface extends DataInterface {
       Array("¡", "¡")
   )
 
-  // var idRanges = text.foldLeft(List()) { (acc, next) =>
-  //   acc + 
+  val mockedTerms = ArrayBuffer[Term]()
 
-  // }
-
-  var mockedEntities = Array(
-      new Entity(1, "Luanda"),
-      new Entity(2, "Angola"),
-      new Entity(3, "Popular Movement for the Liberation of Angola")
-  )
-
-  // var mockedTerms = mockedSentences.map((x) => x.tokens).foldLeft(Array[Sentence]()) {
-  //   // (accumulator, sentenceTerms) => accumulator ++ sentenceTerms
-  // }
-
-  var mockedTerms = Array[Term]()
+  var currentTermId = 0
+  var currentSentenceId = 4787
+  text.foreach { (sentence) =>
+    sentence.foreach { (termText) =>
+      mockedTerms += new Term(currentTermId, termText, currentSentenceId)
+      currentTermId += 1
+    }
+    currentSentenceId += 1
+  }
 
   // Sentences
 
@@ -73,10 +75,16 @@ object StubDataInterface extends DataInterface {
   }
 
   def getTermsOfSentence(sentenceId: Integer): Iterator[Term] = {
+    if (sentenceId < 4787 || 4796 < sentenceId) {
+      throw new NoSuchElementException()
+    }
     return mockedTerms.iterator
   }
 
   def getTermById(termId: Integer): Term = {
-    return mockedTerms(0)
+    if (termId < 0 || mockedTerms.length < termId) {
+      throw new NoSuchElementException()
+    }
+    return mockedTerms(termId)
   }
 }
