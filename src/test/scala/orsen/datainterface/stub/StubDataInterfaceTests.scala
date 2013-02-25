@@ -28,13 +28,13 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
   test("getSentenceById retrieving lowest id works") {
     var sent = StubDataInterface.getSentenceById(4787)
     assert(sent.isInstanceOf[Sentence])
-    assert(sent.id == 4787)
+    assert(sent.id === 4787)
   }
 
   test("getSentenceById retrieving highest id works") {
     var sent = StubDataInterface.getSentenceById(4796)
     assert(sent.isInstanceOf[Sentence])
-    assert(sent.id == 4796)
+    assert(sent.id === 4796)
   }
 
   /************
@@ -58,15 +58,15 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
   test("getEntityById retrieving the lowest id entity works") {
     var ent = StubDataInterface.getEntityById(1)
     assert(ent.isInstanceOf[Entity])
-    assert(ent.id == 1)
-    assert(ent.name == "Luanda")
+    assert(ent.id === 1)
+    assert(ent.name === "Luanda")
   }
 
   test("getEntityById retrieving the highest id entity works") {
     var ent = StubDataInterface.getEntityById(3)
     assert(ent.isInstanceOf[Entity])
-    assert(ent.id == 3)
-    assert(ent.name == "Popular Movement for the Liberation of Angola")
+    assert(ent.id === 3)
+    assert(ent.name === "Popular Movement for the Liberation of Angola")
   }
 
 
@@ -98,16 +98,16 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
 
   test("getTermById retrieving lowest id works") {
     var term = StubDataInterface.getTermById(0)
-    assert(term.id == 0)
-    assert(term.name == "LUANDA")
-    assert(term.sentenceId == 4787)
+    assert(term.id === 0)
+    assert(term.name === "LUANDA")
+    assert(term.sentenceId === 4787)
   }
 
   test("getTermById retrieving highest id works") {
     var term = StubDataInterface.getTermById(207)
-    assert(term.id == 207)
-    assert(term.name == "¡")
-    assert(term.sentenceId == 4796)
+    assert(term.id === 207)
+    assert(term.name === "¡")
+    assert(term.sentenceId === 4796)
   }
 
 }
