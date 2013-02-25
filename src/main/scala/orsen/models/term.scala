@@ -14,6 +14,8 @@ class Term(_id: Integer, _name: String, _sentenceId: Integer) {
   def name: String = _name
   /** The id of the sentence containing this term */
   def sentenceId: Integer = _sentenceId
+  /** A map of candidate(Entity) ids to their probabilities */
+  var candidates: Map[Int, Double] = Map()
 
   override def toString() = "Term|id: %d, name: %s".format(this.id, this.name)
 }

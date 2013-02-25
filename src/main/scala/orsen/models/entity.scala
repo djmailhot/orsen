@@ -12,6 +12,8 @@ class Entity(entityId: Integer, entityName: String) {
   def id: Integer = entityId
   /** The name of this Entity */
   def name: String = entityName
+  /** A description of this Entity */
+  var description: String = ""
 
   override def toString() = "<Entity|id: %d, name: %s>".format(this.id, this.name)
 
