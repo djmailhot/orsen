@@ -5,12 +5,10 @@ import orsen.models._
 
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
-import org.scalamock.scalatest._
 
 import java.io.File
 
-class UnorganizedOutputWriterTests extends FunSuite with MockFactory
-                                                    with BeforeAndAfter{
+class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
 
   val TestFilePath    = "/tmp/test_output.txt"
   var exampleEntity   = new Entity(42, "entity_name")
