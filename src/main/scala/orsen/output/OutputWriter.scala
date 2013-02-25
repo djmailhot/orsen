@@ -9,19 +9,23 @@ import orsen.models._
 trait OutputWriter {
 
   /** Writes the Entity to the OutputInterface's output target
+    *
+    * @param entity The entity to write
     */
   def writeEntity(entity: Entity)
 
   /** Writes the Sentence to the OutputInterface's output target
+    *
+    * @param sentence The sentence to write
     */
   def writeSentence(sentence: Sentence)
 
   /** Writes the Term to the OutputInterface's output target
     *
-    * The term should be in a completed form with all candidates
-    * already computed, and it is assumed that the same term will
-    * not be written twice.
+    * @param term The term to write. Assumed to only ever be written once
+    * @param candidates Candidates for the term. Keys are Entities and their values the
+    * computed probability that the true Sense for the term.
     */
-  def writeTerm(term: Term)
+  def writeTerm(term: Term, candidates: Map[Entity, Double])
 
 }

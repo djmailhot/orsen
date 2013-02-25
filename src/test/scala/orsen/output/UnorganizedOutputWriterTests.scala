@@ -14,11 +14,11 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
   var exampleEntity   = new Entity(42, "entity_name")
   var exampleSentence = new Sentence(39, Array(1, 2, 3))
   var exampleTerm     = new Term(1, "term_name", 39)
+  var candidates = Map()(1 -> 0.75,2->0.25)
 
   var noRemoveFlag = false
   before {
     exampleEntity.description = "example_description"
-    exampleTerm.candidates += (1 -> 0.75,2->0.25)
 
     // Make sure that TestFilePath cannot collide with an existing file
     var outputFileProbe = new File(TestFilePath)
@@ -27,7 +27,7 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
       fail(TestFilePath + " exists already, so tests cannot run . Please remove it")
     }
 
-    UnorganizedOutputWriter.assignOutputFile(TestFilePath)
+    UnorganizedOutputWriter.setOutputFile(TestFilePath)
   }
 
   after {
@@ -54,7 +54,7 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
   }
 
   test("writeTerm formatting is right") {
-    UnorganizedOutputWriter.writeTerm(exampleTerm)
+    UnorganizedOutputWriter.writeTerm(exampleTerm, candidates)
     assert(scala.io.Source.fromFile(TestFilePath).mkString === "term,1,term_name,1,0.75,2,0.25\n")
   }
 
