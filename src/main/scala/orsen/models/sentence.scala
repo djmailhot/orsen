@@ -7,20 +7,20 @@ import orsen.datainterface.stub.StubDataInterface
   * more formally consists of an ordered list of tokens
   *
   * @param id the Sentence's unique id
-  * @param tokens an array of tokenized text making up the Sentence.  
+  * @param tokenIds an array of tokenized text making up the Sentence.  
   */
-class Sentence(sentenceId: Integer, _termIds: Array[Integer]) {
+class Sentence(sentenceId: Integer, _tokenIds: Array[Integer]) {
 
   /** The unique id of this Sentence */
   def id: Integer = sentenceId
   /** A Array of all tokens in this Sentence */
-  def termIds: Array[Integer] = _termIds
+  def tokenIds: Array[Integer] = _tokenIds
   /** The raw tokenized text of this Sentence */
   // def getText: String = sentenceTokens.mkString(" ")
 
-  def termIterator(): Iterator[Term] = {
+  def tokenIterator(): Iterator[Token] = {
     // TODO: Come from arbitrary DataInterface specified in a config file
-    StubDataInterface.getTermsOfSentence(this.id)
+    StubDataInterface.getTokensOfSentence(this.id)
   }
 
   override def toString() = "<Sentence|id: %d>".format(this.id)

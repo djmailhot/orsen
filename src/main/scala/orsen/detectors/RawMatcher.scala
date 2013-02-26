@@ -5,8 +5,8 @@ import orsen.models._
 import orsen.datainterface.stub._
 import orsen.output._
 
-/** RawMatcher uses raw string matching to generate term candidates
-  * For any term, its list of candidates are all entities that have
+/** RawMatcher uses raw string matching to generate mention candidates
+  * For any mention, its list of candidates are all entities that have
   * the same name. All candidates share a uniform probability
   */
 object RawMatcher extends Detector {
@@ -36,7 +36,7 @@ object RawMatcher extends Detector {
   /** Returns a Map[Entity, Double]
     *
     */
-  def buildCandidates(entityTable: Map[String, Array[Integer]], term: Term) {
+  def buildCandidates(entityTable: Map[String, Array[Integer]], mention: Mention) {
 
   }
 }

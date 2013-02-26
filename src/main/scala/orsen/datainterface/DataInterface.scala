@@ -34,26 +34,26 @@ trait DataInterface {
     */
   def getEntityById(entityId: Integer): Entity
 
-  /** Returns an iterator over all terms in the data corpus.
-    * Terms are represented by Term model objects.
+  /** Returns an iterator over all tokens in the data corpus.
+    * Tokens are represented by Token model objects.
     *
-    * @return an iterator of Term objects
+    * @return an iterator of Token objects
     */
-  def getTerms(): Iterator[Term]
+  def getTokens(): Iterator[Token]
 
-  /** Returns an iterator over all terms in the given sentence
-    * Terms are represented by Term model objects.
+  /** Returns an iterator over all tokens in the given sentence
+    * Tokens are represented by Token model objects.
     *
-    * @return an iterator of Term objects
+    * @return an iterator of Token objects
     * @throws NoSuchElementException if sentenceId does not match any Sentence
     */
-  def getTermsOfSentence(sentenceId: Integer): Iterator[Term]
+  def getTokensOfSentence(sentenceId: Integer): Iterator[Token]
 
-  /** Returns the Term that is associated with this termId
-    * Terms are represented by Term model objects.
+  /** Returns the Token that is associated with this tokenId
+    * Tokens are represented by Token model objects.
     *
-    * @return an iterator of Term objects
-    * @throws NoSuchElementException if termId does not match any Term
+    * @return an iterator of Token objects
+    * @throws NoSuchElementException if tokenId does not match any Token
     */
-  def getTermById(termId: Integer): Term
+  def getTokenById(tokenId: Integer): Token
 }

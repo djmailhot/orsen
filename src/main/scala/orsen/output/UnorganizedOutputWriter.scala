@@ -7,8 +7,8 @@ import org.scalamock.annotation.mock
 /** An UnorganizedOutputWriter writes all output to a single file.
   * All lines match one of the three formats:
   *   entity,id,name,description
-  *   sentence,id,term_1_id,term_2_id,...
-  *   term,id,name,candidate_1_id,candidate_1_probability,candidate_2_id,...
+  *   sentence,id,token_1_id,token_2_id,...
+  *   mention,id,name,candidate_1_id,candidate_1_probability,candidate_2_id,...
   *
   */
 object UnorganizedOutputWriter extends OutputWriter {
@@ -50,14 +50,14 @@ object UnorganizedOutputWriter extends OutputWriter {
   }
 
   def writeSentence(sentence: Sentence) {
-    writeInformation(Array[Any]("sentence", sentence.id) ++ sentence.termIds)
+    writeInformation(Array[Any]("sentence", sentence.id) ++ sentence.mentionIds)
   }
 
-  def writeTerm(term: Term, candidates: Map[Integer, Double]) {
+  def writeMention(mention: Mention, candidates: Map[Integer, Double]) {
     val candidatesList = candidates.foldLeft(Array[Any]()){
       (acc, candidate) => acc :+ candidate._1 :+ candidate._2
     }
-    val information = Array[Any]("term",term.id,term.name) ++ candidates
+    val information = Array[Any]("mention",mention.id,mention.name) ++ candidates
     writeInformation(information)
   }
 }

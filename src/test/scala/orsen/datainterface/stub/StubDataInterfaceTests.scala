@@ -11,7 +11,7 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
    * Sentences *
    *************/
 
-  test("getSentences returns an iterator of Term objects") {
+  test("getSentences returns an iterator of Sentence objects") {
     var it = StubDataInterface.getSentences()
     while (it.hasNext) {
       assert(it.next.isInstanceOf[Sentence])
@@ -41,7 +41,7 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
    * Entities *
    ************/
 
-  test("getEntities returns an iterator of Term objects") {
+  test("getEntities returns an iterator of Entity objects") {
     var it = StubDataInterface.getEntities()
     while (it.hasNext) {
       assert(it.next.isInstanceOf[Entity])
@@ -70,44 +70,44 @@ class StubDataInterfaceTests extends FunSuite with BeforeAndAfter {
   }
 
 
-  /*********
-   * Terms *
-   *********/
+  /**********
+   * Tokens *
+   **********/
 
-  test("getTerms returns an iterator of Term objects") {
-    var it = StubDataInterface.getTerms
+  test("getTokens returns an iterator of Token objects") {
+    var it = StubDataInterface.getTokens
     while (it.hasNext) {
-      assert(it.next.isInstanceOf[Term])
+      assert(it.next.isInstanceOf[Token])
     }
   }
 
-  test("getTermsOfSentence throws NoSuchElementException with invalid id") {
+  test("getTokensOfSentence throws NoSuchElementException with invalid id") {
     intercept[NoSuchElementException] {
-       StubDataInterface.getTermsOfSentence(-1)
+       StubDataInterface.getTokensOfSentence(-1)
     }
     intercept[NoSuchElementException] {
-       StubDataInterface.getTermsOfSentence(208)
+       StubDataInterface.getTokensOfSentence(208)
     }
   }
 
-  test("getTermById throws NoSuchElementException with invalid id") {
+  test("getTokenById throws NoSuchElementException with invalid id") {
     intercept[NoSuchElementException] {
-       StubDataInterface.getTermById(-1)
+       StubDataInterface.getTokenById(-1)
     }
   }
 
-  test("getTermById retrieving lowest id works") {
-    var term = StubDataInterface.getTermById(0)
-    assert(term.id === 0)
-    assert(term.name === "LUANDA")
-    assert(term.sentenceId === 4787)
+  test("getTokenById retrieving lowest id works") {
+    var token = StubDataInterface.getTokenById(0)
+    assert(token.id === 0)
+    assert(token.text === "LUANDA")
+    assert(token.sentenceId === 4787)
   }
 
-  test("getTermById retrieving highest id works") {
-    var term = StubDataInterface.getTermById(207)
-    assert(term.id === 207)
-    assert(term.name === "¡")
-    assert(term.sentenceId === 4796)
+  test("getTokenById retrieving highest id works") {
+    var token = StubDataInterface.getTokenById(207)
+    assert(token.id === 207)
+    assert(token.text === "¡")
+    assert(token.sentenceId === 4796)
   }
 
 }

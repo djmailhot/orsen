@@ -27,14 +27,14 @@ object StubDataInterface extends DataInterface {
       Array("¡", "¡")
   )
 
-  val mockedTerms = ArrayBuffer[Term]()
+  val mockedTokens = ArrayBuffer[Token]()
 
-  var currentTermId = 0
+  var currentTokenId = 0
   var currentSentenceId = 4787
   text.foreach { (sentence) =>
-    sentence.foreach { (termText) =>
-      mockedTerms += new Term(currentTermId, termText, currentSentenceId)
-      currentTermId += 1
+    sentence.foreach { (tokenText) =>
+      mockedTokens += new Token(currentTokenId, tokenText, currentSentenceId)
+      currentTokenId += 1
     }
     currentSentenceId += 1
   }
@@ -68,23 +68,23 @@ object StubDataInterface extends DataInterface {
     return mockedEntities(entityId - 1)
   }
 
-  // Terms
+  // Tokens
 
-  def getTerms(): Iterator[Term] = {
-    return mockedTerms.iterator
+  def getTokens(): Iterator[Token] = {
+    return mockedTokens.iterator
   }
 
-  def getTermsOfSentence(sentenceId: Integer): Iterator[Term] = {
+  def getTokensOfSentence(sentenceId: Integer): Iterator[Token] = {
     if (sentenceId < 4787 || 4796 < sentenceId) {
       throw new NoSuchElementException()
     }
-    return mockedTerms.iterator
+    return mockedTokens.iterator
   }
 
-  def getTermById(termId: Integer): Term = {
-    if (termId < 0 || mockedTerms.length < termId) {
+  def getTokenById(tokenId: Integer): Token = {
+    if (tokenId < 0 || mockedTokens.length < tokenId) {
       throw new NoSuchElementException()
     }
-    return mockedTerms(termId)
+    return mockedTokens(tokenId)
   }
 }

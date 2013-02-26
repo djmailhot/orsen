@@ -13,7 +13,7 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
   val TestFilePath    = "/tmp/test_output.txt"
   var exampleEntity   = new Entity(42, "entity_name")
   var exampleSentence = new Sentence(39, Array(1, 2, 3))
-  var exampleTerm     = new Term(1, "term_name", 39)
+  var exampleMention     = new Mention(1, "mention_name", 39)
   var candidates = Map()(1 -> 0.75,2->0.25)
 
   var noRemoveFlag = false
@@ -53,9 +53,9 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
     assert(scala.io.Source.fromFile(TestFilePath).mkString === "sentence,39,1,2,3\n")
   }
 
-  test("writeTerm formatting is right") {
-    UnorganizedOutputWriter.writeTerm(exampleTerm, candidates)
-    assert(scala.io.Source.fromFile(TestFilePath).mkString === "term,1,term_name,1,0.75,2,0.25\n")
+  test("writeMention formatting is right") {
+    UnorganizedOutputWriter.writeMention(exampleMention, candidates)
+    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,1,0.75,2,0.25\n")
   }
 
 }
