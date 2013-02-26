@@ -80,7 +80,7 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @throws NoSuchElementException if tokenId does not match any Token
     */
   def getTokenById(tokenId: Int): Token = {
-    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("tokenId" -> tokenId), "tokens")
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("_id" -> tokenId), "tokens")
     return deserializeToken(dbRecord)
   }
 
@@ -101,7 +101,7 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
   }
 
   private def deserializeToken(dbRecord: MongoDBObject): Token = {
-    val tId = dbRecord.as[Int]("tokenId")
+    val tId = dbRecord.as[Int]("_id")
     val sId = dbRecord.as[Int]("sentenceId")
     val text = dbRecord.as[String]("text")
     return new Token(tId, text, sId)

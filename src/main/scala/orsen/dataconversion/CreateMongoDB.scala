@@ -37,13 +37,13 @@ object CreateMongoDB {
       // if there is no object for this sentence id, add a new object to the collection
       dbRecord = MongoDBObject("sentenceId" -> id)
 //        println("old record" + dbRecord)
-      record += "text" -> text
+      dbRecord += "text" -> text
 //        println("new record" + dbRecord)
       collection += dbRecord
     } else {
       // if there is an object for this sentence id, update it in the collection
 //        println("old record" + dbRecord)
-      record += "text" -> text
+      dbRecord += "text" -> text
 //        println("new record" + dbRecord)
       collection.update(query, dbRecord)
     }
@@ -67,13 +67,13 @@ object CreateMongoDB {
         // if there is no object for this sentence id, add a new object to the collection
         dbRecord = MongoDBObject("sentenceId" -> id, "index" -> index)
   //        println("old record" + dbRecord)
-        record += "text" -> token
+        dbRecord += "text" -> token
   //        println("new record" + dbRecord)
         collection.insert(dbRecord)
       } else {
         // if there is an object for this sentence id, update it in the collection
   //        println("old record" + dbRecord)
-        record += "text" -> token
+        dbRecord += "text" -> token
   //        println("new record" + dbRecord)
         collection.update(query, dbRecord)
       }
@@ -106,7 +106,7 @@ object CreateMongoDB {
     extractData(dataPath + "sentences.text", parseText, sentencesColl)
 
     val tokensColl: MongoCollection = mongoDB("tokens")
-    tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
+    tokensColl.ensureIndex( MongoDBObject("_id" -> 1), MongoDBObject("unique" -> true))
     tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
     extractData(dataPath + "sentences.tokens", parseTokens, tokensColl)
   }
