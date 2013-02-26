@@ -9,12 +9,12 @@ import orsen.datainterface.stub.StubDataInterface
   * @param id the Sentence's unique id
   * @param tokenIds an array of tokenized text making up the Sentence.  
   */
-class Sentence(sentenceId: Integer, _tokenIds: Array[Integer]) {
+class Sentence(sentenceId: Int, _tokenIds: Array[Int]) {
 
   /** The unique id of this Sentence */
-  def id: Integer = sentenceId
+  def id: Int = sentenceId
   /** A Array of all tokens in this Sentence */
-  def tokenIds: Array[Integer] = _tokenIds
+  def tokenIds: Array[Int] = _tokenIds
   /** The raw tokenized text of this Sentence */
   // def getText: String = sentenceTokens.mkString(" ")
 

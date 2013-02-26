@@ -6,10 +6,10 @@ package orsen.models
   * @param id the Entity's unique id
   * @param name the Entity's name
   */
-class Entity(entityId: Integer, entityName: String) {
+class Entity(entityId: Int, entityName: String) {
 
   /** The unique id of this Entity */
-  def id: Integer = entityId
+  def id: Int = entityId
   /** The name of this Entity */
   def name: String = entityName
   /** A description of this Entity */
