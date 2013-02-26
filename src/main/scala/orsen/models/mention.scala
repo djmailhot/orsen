@@ -7,15 +7,14 @@ package orsen.models
   * @param id A unique id for this Mention
   * @param text The text of this token
   */
-class Mention(_id: Integer, _text: String) {
+class Mention(_id: Integer, _text: String, _tokenIds: Array[Integer]) {
 
   /** The unique id of this Mention */
   def id: Integer = _id
   /** The name of this Mention */
   def text: String = _text
   /** The ids of the tokens that make up this Mention */
-  // TODO: 
-  var tokenIDs: Array[Integer] = Array()
+  def tokenIDs: Array[Integer] = _tokenIds
 
 
   override def toString() = "Mention|id: %d, text: %s".format(this.id, this.text)

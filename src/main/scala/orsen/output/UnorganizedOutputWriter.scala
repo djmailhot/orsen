@@ -50,14 +50,14 @@ object UnorganizedOutputWriter extends OutputWriter {
   }
 
   def writeSentence(sentence: Sentence) {
-    writeInformation(Array[Any]("sentence", sentence.id) ++ sentence.mentionIds)
+    writeInformation(Array[Any]("sentence", sentence.id) ++ sentence.tokenIds)
   }
 
   def writeMention(mention: Mention, candidates: Map[Integer, Double]) {
     val candidatesList = candidates.foldLeft(Array[Any]()){
       (acc, candidate) => acc :+ candidate._1 :+ candidate._2
     }
-    val information = Array[Any]("mention",mention.id,mention.name) ++ candidates
+    val information = Array[Any]("mention", mention.id, mention.text) ++ candidates
     writeInformation(information)
   }
 }

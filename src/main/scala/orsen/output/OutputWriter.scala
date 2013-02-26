@@ -26,7 +26,7 @@ trait OutputWriter {
     * @param candidates Candidates for the mention. Keys are Entities and their values the
     * computed probability that the true Sense for the mention.
     */
-  def writeMention(mention: Mention, candidates: Map[Int, Double])
+  def writeMention(mention: Mention, candidates: Map[Integer, Double])
 
   /** Writes the Mention to the OutputInterface's output target
     *
