@@ -24,19 +24,19 @@ object RawMatcher extends Detector {
 
   }
 
-  /** Builds a Map of [Entity Name(String)] to Array[Entity Id(Integer)]
+  /** Builds a Map of [Entity Name(String)] to Array[Entity Id(Int)]
     *
     * @return a Map of Entity Name to Array of Entity Ids
     */
-  def buildEntityTable(entities: Iterator[Entity]): Map[String, Array[Integer]] = {
-    var entityTable = Map[String, Array[Integer]]()
+  def buildEntityTable(entities: Iterator[Entity]): Map[String, Array[Int]] = {
+    var entityTable = Map[String, Array[Int]]()
     return entityTable
   }
 
   /** Returns a Map[Entity, Double]
     *
     */
-  def buildCandidates(entityTable: Map[String, Array[Integer]], mention: Mention) {
+  def buildCandidates(entityTable: Map[String, Array[Int]], mention: Mention) {
 
   }
 }

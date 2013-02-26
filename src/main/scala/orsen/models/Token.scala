@@ -7,14 +7,14 @@ package orsen.models
   * @param id A unique id for this Token
   * @param text The text of this token
   */
-class Token(_id: Integer, _text: String, _sentenceId: Integer) {
+class Token(_id: Int, _text: String, _sentenceId: Int) {
 
   /** The unique id of this Token */
-  def id: Integer = _id
+  def id: Int = _id
   /** The name of this Token */
   def text: String = _text
   /** The id of the sentence containing this Token */
-  def sentenceId: Integer = _sentenceId
+  def sentenceId: Int = _sentenceId
 
   override def toString() = "Token|id: %d, text: %s".format(this.id, this.text)
 }

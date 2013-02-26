@@ -12,7 +12,7 @@ object StubDataInterface extends DataInterface {
       new Entity(3, "Popular Movement for the Liberation of Angola")
   )
 
-  val mockedSentences = (4787 to 4796 toArray).map((id) => new Sentence(id, Array[Integer]()))
+  val mockedSentences = (4787 to 4796 toArray).map((id) => new Sentence(id, Array[Int]()))
 
   val text = Array(
       Array("LUANDA", ",", "Sept.", "17", "-LRB-", "Xinhua", "-RRB-"),
@@ -45,7 +45,7 @@ object StubDataInterface extends DataInterface {
     return mockedSentences.iterator
   }
 
-  def getSentenceById(sentenceId: Integer): Sentence = {
+  def getSentenceById(sentenceId: Int): Sentence = {
     if (sentenceId < 4787 || 4796 < sentenceId) {
       throw new NoSuchElementException()
     }
@@ -60,7 +60,7 @@ object StubDataInterface extends DataInterface {
     return mockedEntities.iterator
   }
 
-  def getEntityById(entityId: Integer): Entity = {
+  def getEntityById(entityId: Int): Entity = {
     if (entityId < 1 || entityId > 3) {
       throw new NoSuchElementException()
     }
@@ -74,14 +74,14 @@ object StubDataInterface extends DataInterface {
     return mockedTokens.iterator
   }
 
-  def getTokensOfSentence(sentenceId: Integer): Iterator[Token] = {
+  def getTokensOfSentence(sentenceId: Int): Iterator[Token] = {
     if (sentenceId < 4787 || 4796 < sentenceId) {
       throw new NoSuchElementException()
     }
     return mockedTokens.iterator
   }
 
-  def getTokenById(tokenId: Integer): Token = {
+  def getTokenById(tokenId: Int): Token = {
     if (tokenId < 0 || mockedTokens.length < tokenId) {
       throw new NoSuchElementException()
     }
