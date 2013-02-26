@@ -19,21 +19,28 @@ trait DataInterface {
     * @return a Sentence object
     * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
-  def getSentenceById(sentenceId: Integer): Sentence
+  def getSentenceById(sentenceId: Int): Sentence
+
+  /** Returns the token that is associated with this tokenId.
+    *
+    * @return a Token object
+    * @throws NoSuchElementException if tokenId does not match any Token
+    */
+  def getTokenById(tokenId: Integer): Token
 
   /** Returns the text tokens that are associated with this sentenceId.
     *
     * @return a list of Token objects
     * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
-  def getTokensById(sentenceId: Integer): Array[String]
+  def getTokensBySentenceId(sentenceId: Int): Array[Token]
 
   /** Returns the Part Of Speech tag for the text tokens of this sentenceId.
     *
     * @return a list of Strings that are Part Of Speech tags
     * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
-  def getPOStagsById(sentenceId: Integer): Array[String]
+  def getPOStagsById(sentenceId: Int): Array[String]
 
   /** Returns an iterator over all existing entities in the entity database.
     * Entities are represented by Entity model objects.
@@ -47,7 +54,7 @@ trait DataInterface {
     * @return an Entity object
     * @throws NoSuchElementException if entityId does not match any Entity
     */
-  def getEntityById(entityId: Integer): Entity
+  def getEntityById(entityId: Int): Entity
 
   /** Returns an iterator over all tokens in the data corpus.
     * Tokens are represented by Token model objects.
@@ -62,7 +69,7 @@ trait DataInterface {
     * @return an iterator of Token objects
     * @throws NoSuchElementException if sentenceId does not match any Sentence
     */
-  def getTokensOfSentence(sentenceId: Integer): Iterator[Token]
+  def getTokensOfSentence(sentenceId: Int): Iterator[Token]
 
   /** Returns the Token that is associated with this tokenId
     * Tokens are represented by Token model objects.
@@ -70,5 +77,5 @@ trait DataInterface {
     * @return an iterator of Token objects
     * @throws NoSuchElementException if tokenId does not match any Token
     */
-  def getTokenById(tokenId: Integer): Token
+  def getTokenById(tokenId: Int): Token
 }

@@ -19,9 +19,9 @@ object CreateMongoDB {
       val line: String = it.next
       println(line)
       val parse = line.split("\t")
-      val id: Integer = parse(0).toInt
+      val id: Int = parse(0).toInt
 
-      val query: MongoDBObject = MongoDBObject("_id" -> id)
+      val query: MongoDBObject = MongoDBObject("sentenceId" -> id)
       var dbRecord: MongoDBObject = collection.findOne(query) match {
         case Some(record) => record
         case None => null
@@ -29,7 +29,7 @@ object CreateMongoDB {
 
       if (dbRecord == null) {
         // if there is no object for this sentence id, add a new object to the collection
-        dbRecord = MongoDBObject("_id" -> id)
+        dbRecord = MongoDBObject("sentenceId" -> id)
         println("old record" + dbRecord)
         parseFunc(line, dbRecord)
         println("new record" + dbRecord)
@@ -45,44 +45,49 @@ object CreateMongoDB {
   }
 
 
-  def parseText(line: String, sentenceRecord: MongoDBObject) {
+  def parseText(line: String, record: MongoDBObject) {
     val parse = line.split("\t")
     val text = parse(1)
-    sentenceRecord += "text" -> text
+    record += "text" -> text
   }
 
-  def parseTokens(line: String, sentenceRecord: MongoDBObject) {
+  def parseTokens(line: String, record: MongoDBObject) {
     val parse = line.split("\t")
     val tokens: Array[String] = parse(1).split(" ")
-    sentenceRecord += "tokens" -> tokens
+    record += "tokens" -> tokens
   }
 
-  def parsePOStags(line: String, sentenceRecord: MongoDBObject) {
+  def parsePOStags(line: String, record: MongoDBObject) {
     val parse = line.split("\t")
     val posTags: Array[String] = parse(1).split(" ")
-    sentenceRecord += "postags" -> posTags
+    record += "postags" -> posTags
   }
 
 
-  def parseNERtags(line: String, sentenceRecord: MongoDBObject) {
+  def parseNERtags(line: String, record: MongoDBObject) {
     val parse = line.split("\t")
     val nerTags: Array[String] = parse(1).split(" ")
-    sentenceRecord += "nertags" -> nerTags
+    record += "nertags" -> nerTags
   }
 
 
   def createDatabase(databasename: String = "orsen", databasepath: String = "prod") {
     val dataPath: String = "data/" + databasepath + "/"
 
+    MongoClient().dropDatabase(databasename)
     val mongoDB: MongoDB = MongoClient()(databasename)
 
     val sentencesColl: MongoCollection = mongoDB("sentences")
-    sentencesColl.ensureIndex("_id")
+    sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
 
     extractData(dataPath + "sentences.text", parseText, sentencesColl)
-    extractData(dataPath + "sentences.tokens", parseTokens, sentencesColl)
-    extractData(dataPath + "sentences.stanfordpos", parsePOStags, sentencesColl)
-    extractData(dataPath + "sentences.stanfordner", parseNERtags, sentencesColl)
+
+    val tokensColl: MongoCollection = mongoDB("tokens")
+    tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
+    tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
+    extractData(dataPath + "sentences.tokens", parseTokens, tokensColl)
+    extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl)
+    extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl)
   }
 
 }
