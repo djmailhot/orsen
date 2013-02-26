@@ -6,6 +6,7 @@ import orsen.models._
   *
   */
 trait DataInterface {
+
   /** Returns an iterator over all sentences in the data corpus.
     * Sentences are represented by Sentence model objects.
     *
@@ -19,6 +20,20 @@ trait DataInterface {
     * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
   def getSentenceById(sentenceId: Integer): Sentence
+
+  /** Returns the text tokens that are associated with this sentenceId.
+    *
+    * @return a list of Token objects
+    * @throws NoSuchElementException if sentenceID does not match any Sentence
+    */
+  def getTokensById(sentenceId: Integer): Array[String]
+
+  /** Returns the Part Of Speech tag for the text tokens of this sentenceId.
+    *
+    * @return a list of Strings that are Part Of Speech tags
+    * @throws NoSuchElementException if sentenceID does not match any Sentence
+    */
+  def getPOStagsById(sentenceId: Integer): Array[String]
 
   /** Returns an iterator over all existing entities in the entity database.
     * Entities are represented by Entity model objects.
