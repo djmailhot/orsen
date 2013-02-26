@@ -8,20 +8,56 @@ import com.mongodb.casbah.MongoClient
 
 object CreateMongoDB {
 
-  var databasename = "orsen"
-
-  def extractData(fileName: String, parseFunc: ((String, MongoDBObject) => Unit), collection: MongoCollection) {
-    println("extracting from file "+fileName)
+  def extractData(fileName: String, parseFunc: ((String, MongoCollection) => Unit), collection: MongoCollection) {
+//    println("extracting from file "+fileName)
 
     val it: Iterator[String] = Source.fromFile(fileName).getLines
     while (it.hasNext) {
-      println(collection.toString())
+//      println(collection.toString())
       val line: String = it.next
-      println(line)
-      val parse = line.split("\t")
-      val id: Int = parse(0).toInt
+//      println(line)
+      parseFunc(line, collection)
+    }
+  }
 
-      val query: MongoDBObject = MongoDBObject("sentenceId" -> id)
+
+  def parseText(line: String, collection: MongoCollection) {
+    val parse = line.split("\t")
+    val id: Int = parse(0).toInt
+    val text = parse(1)
+
+
+    val query: MongoDBObject = MongoDBObject("sentenceId" -> id)
+    var dbRecord: MongoDBObject = collection.findOne(query) match {
+      case Some(record) => record
+      case None => null
+    }
+
+    if (dbRecord == null) {
+      // if there is no object for this sentence id, add a new object to the collection
+      dbRecord = MongoDBObject("sentenceId" -> id)
+//        println("old record" + dbRecord)
+      record += "text" -> text
+//        println("new record" + dbRecord)
+      collection += dbRecord
+    } else {
+      // if there is an object for this sentence id, update it in the collection
+//        println("old record" + dbRecord)
+      record += "text" -> text
+//        println("new record" + dbRecord)
+      collection.update(query, dbRecord)
+    }
+  }
+
+  def parseTokens(line: String, collection: MongoCollection) {
+    val parse = line.split("\t")
+    val id: Int = parse(0).toInt
+    val tokens: Array[String] = parse(1).split(" ")
+
+    for( index <- 0 to (tokens.length - 1) ) {
+      val token = tokens(index)
+      
+      val query: MongoDBObject = MongoDBObject("sentenceId" -> id, "index" -> index)
       var dbRecord: MongoDBObject = collection.findOne(query) match {
         case Some(record) => record
         case None => null
@@ -29,32 +65,19 @@ object CreateMongoDB {
 
       if (dbRecord == null) {
         // if there is no object for this sentence id, add a new object to the collection
-        dbRecord = MongoDBObject("sentenceId" -> id)
-        println("old record" + dbRecord)
-        parseFunc(line, dbRecord)
-        println("new record" + dbRecord)
-        collection += dbRecord
+        dbRecord = MongoDBObject("sentenceId" -> id, "index" -> index)
+  //        println("old record" + dbRecord)
+        record += "text" -> token
+  //        println("new record" + dbRecord)
+        collection.insert(dbRecord)
       } else {
         // if there is an object for this sentence id, update it in the collection
-        println("old record" + dbRecord)
-        parseFunc(line, dbRecord)
-        println("new record" + dbRecord)
+  //        println("old record" + dbRecord)
+        record += "text" -> token
+  //        println("new record" + dbRecord)
         collection.update(query, dbRecord)
       }
     }
-  }
-
-
-  def parseText(line: String, record: MongoDBObject) {
-    val parse = line.split("\t")
-    val text = parse(1)
-    record += "text" -> text
-  }
-
-  def parseTokens(line: String, record: MongoDBObject) {
-    val parse = line.split("\t")
-    val tokens: Array[String] = parse(1).split(" ")
-    record += "tokens" -> tokens
   }
 
   def parsePOStags(line: String, record: MongoDBObject) {
@@ -86,8 +109,6 @@ object CreateMongoDB {
     tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
     tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
     extractData(dataPath + "sentences.tokens", parseTokens, tokensColl)
-    extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl)
-    extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl)
   }
 
 }

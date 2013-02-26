@@ -1,6 +1,5 @@
-package test.orsen.dataconversion
+package test.orsen.datainterface
 
-import orsen.dataconversion.MongoConverter
 import orsen.dataconversion.CreateMongoDB
 import orsen.models._
 import org.scalatest.FunSuite

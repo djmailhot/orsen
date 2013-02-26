@@ -10,7 +10,6 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
 
   val mongoDB: MongoDB = MongoClient()(dbname)
 
-  val sentencesColl: MongoCollection = mongoDB("sentences")
 
 
 
@@ -20,7 +19,7 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @return an iterator of Sentence objects
     */
   def getSentences(): Iterator[Sentence] = {
-    return new SentenceIterator(sentencesColl.find())
+    return new DBIterator[Sentence](mongoDB("sentences").find(), deserializeSentence)
   }
 
   /** Returns the sentence that is associated with this sentenceId.
@@ -29,28 +28,8 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @throws NoSuchElementException if sentenceID does not match any Sentence
     */
   def getSentenceById(sentenceId: Int): Sentence = {
-    val dbRecord: MongoDBObject = fetchById(sentenceId)
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("sentenceId" -> sentenceId), "sentences")
     return deserializeSentence(dbRecord)
-  }
-
-  /** Returns the text tokens that are associated with this sentenceId.
-    *
-    * @return a list of Token objects
-    * @throws NoSuchElementException if sentenceID does not match any Sentence
-    */
-  def getTokensBySentenceId(sentenceId: Int): Array[Token] = {
-    val dbRecord: MongoDBObject = fetchById(sentenceId)
-    return dbRecord.as[Array[Token]]("tokens")
-  }
-
-  /** Returns the Part Of Speech tag for the text tokens of this sentenceId.
-    *
-    * @return a list of Strings that are Part Of Speech tags
-    * @throws NoSuchElementException if sentenceID does not match any Sentence
-    */
-  def getPOStagsById(sentenceId: Int): Array[String] = {
-    val dbRecord: MongoDBObject = fetchById(sentenceId)
-    return dbRecord.as[Array[String]]("postags")
   }
 
   /** Returns an iterator over all existing entities in the entity database.
@@ -78,7 +57,7 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @return an iterator of Token objects
     */
   def getTokens(): Iterator[Token] = {
-    return null
+    return new DBIterator[Token](mongoDB("tokens").find(), deserializeToken)
   }
 
 
@@ -89,7 +68,8 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @throws NoSuchElementException if sentenceId does not match any Sentence
     */
   def getTokensOfSentence(sentenceId: Int): Iterator[Token] = {
-    return null
+    val query: MongoDBObject = MongoDBObject("sentenceId" -> sentenceId)
+    return new DBIterator[Token](mongoDB("sentences").find(query), deserializeToken)
   }
 
 
@@ -100,15 +80,14 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
     * @throws NoSuchElementException if tokenId does not match any Token
     */
   def getTokenById(tokenId: Int): Token = {
-    return null
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("tokenId" -> tokenId), "tokens")
+    return deserializeToken(dbRecord)
   }
 
 
-
-
-  private def fetchById(sentenceId: Int): MongoDBObject = {
-    val query = MongoDBObject("_id" -> sentenceId)
-    val dbRecord: MongoDBObject = sentencesColl.findOne(query) match {
+  private def fetchOne(query: MongoDBObject, collectionName: String): MongoDBObject = {
+    val collection: MongoCollection = mongoDB(collectionName)
+    val dbRecord: MongoDBObject = collection.findOne(query) match {
       case Some(record) => record
       case None => throw new NoSuchElementException()
     }
@@ -117,17 +96,24 @@ class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
 
 
   private def deserializeSentence(dbRecord: MongoDBObject): Sentence = {
-    val id = dbRecord.as[Int]("_id")
+    val id = dbRecord.as[Int]("sentenceId")
     return new Sentence(id, null)
   }
 
+  private def deserializeToken(dbRecord: MongoDBObject): Token = {
+    val tId = dbRecord.as[Int]("tokenId")
+    val sId = dbRecord.as[Int]("sentenceId")
+    val text = dbRecord.as[String]("text")
+    return new Token(tId, text, sId)
+  }
 
-  private class SentenceIterator(dbCursor: MongoCursor) extends Iterator[Sentence] {
+
+  private class DBIterator[R](dbCursor: MongoCursor, deserializeFunc: (MongoDBObject) => R) extends Iterator[R] {
     def hasNext(): Boolean = {
       return dbCursor.hasNext
     }
-    def next(): Sentence = {
-      return deserializeSentence(dbCursor.next())
+    def next(): R = {
+      return deserializeFunc(dbCursor.next())
     }
   }
 }
