@@ -45,7 +45,6 @@ object UnorganizedOutputWriter extends OutputWriter {
     outputFile.close()
   }
 
-
   def writeEntity(entity: Entity) {
     writeInformation(Array[Any]("entity", entity.id, entity.name, entity.description))
   }
@@ -54,12 +53,11 @@ object UnorganizedOutputWriter extends OutputWriter {
     writeInformation(Array[Any]("sentence", sentence.id) ++ sentence.termIds)
   }
 
-  def writeTerm(term: Term, candidates: Map[Entity, Double]) {
-    /** A map of candidate(Entity) ids to their probabilities */
+  def writeTerm(term: Term, candidates: Map[Integer, Double]) {
     val candidatesList = candidates.foldLeft(Array[Any]()){
-      (acc, candidate) => acc :+ candidate._1.id :+ candidate._2
+      (acc, candidate) => acc :+ candidate._1 :+ candidate._2
     }
-    val information = Array[Any]("term",term.id,term.name) ++ candidatesList
+    val information = Array[Any]("term",term.id,term.name) ++ candidates
     writeInformation(information)
   }
 }
