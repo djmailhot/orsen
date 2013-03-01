@@ -59,8 +59,6 @@ object UnorganizedOutputWriter extends OutputWriter {
     }
     val information = (Array[Any]("mention", mention.id, mention.text, mention.tokenIds.size)
                                   ++ (mention.tokenIds ++ candidatesList))
-    println(information.mkString(","))
-    println(information(6))
     writeInformation(information)
   }
 }
