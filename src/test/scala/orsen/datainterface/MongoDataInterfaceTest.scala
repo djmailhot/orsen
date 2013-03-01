@@ -1,19 +1,37 @@
 package test.orsen.datainterface
 
 import java.io.IOException
+import java.util.Random
 import orsen.dataconversion.CreateMongoDB
 import orsen.datainterface.DataInterface
 import orsen.datainterface.MongoDataInterface
 import orsen.models._
 import org.scalatest.FunSuite
-import org.scalatest.BeforeAndAfter
+import org.scalatest.BeforeAndAfterAll
 
-class MongoDataInterfaceTest extends FunSuite with BeforeAndAfter {
+class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 
-  CreateMongoDB.createDatabase("test", "test")
+  val saltedDbName = "test" + new Random().nextInt()
 
-  val dataInterface = new MongoDataInterface("test")
+  override def beforeAll(configMap: Map[String, Any]) {
+    try {
+      CreateMongoDB.createDatabase(saltedDbName, "test")
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
 
+  override def afterAll(configMap: Map[String, Any]) {
+    try {
+      CreateMongoDB.dropDatabase(saltedDbName)
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
+
+  def dataInterface: MongoDataInterface = {
+    return new MongoDataInterface(saltedDbName)
+  }
 
   /*************
    * Sentences *
@@ -41,7 +59,6 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfter {
     }
   }
 
-  //  4787	LUANDA, Sept. 17 (Xinhua)
   test("getSentenceById retrieving correct Sentence model object works") {
     try {
       var sent: Sentence = dataInterface.getSentenceById(4789)
@@ -56,17 +73,6 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfter {
   /**********
    * Tokens *
    **********/
-
-  test("getTokenById throws NoSuchElementException with invalid id") {
-    try {
-      intercept[NoSuchElementException] {
-        dataInterface.getTokenById(-1)
-        fail()
-      }
-    } catch {
-      case ioe: IOException => fail(ioe.toString())
-    }
-  }
 
   test("getTokens returns an iterator of Token objects") {
     try {
@@ -95,16 +101,46 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfter {
   }
 
   test("getTokensOfSentence retrieves the correct Token model objects") {
-
     try {
-      val actualTokenStrings = "4787	LUANDA, Sept. 17 (Xinhua)".split("\t")
+      val actualTokens = "It was Angola 's first election since a 27-year civil war ended in the country in 2002 .".split(" ")
       val it: Iterator[Token] = dataInterface.getTokensOfSentence(4789)
 
       var i = 0
       while(it.hasNext) {
         val token: Token = it.next
-        assert(token.text === actualTokenStrings(i))
+        assert(token.text === actualTokens(i))
         i += 1
+      }
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
+
+  test("getTokensOfSentence retrieves Token model objects with all expected fields (text, postag, nertag)") {
+    try {
+      val actualTokens = "It was Angola 's first election since a 27-year civil war ended in the country in 2002 .".split(" ")
+      val actualPOStags = "PRP VBD NNP POS JJ NN IN DT JJ JJ NN VBD IN DT NN IN CD .".split(" ")
+      val actualNERtags = "O O LOCATION O ORDINAL O O O DURATION O O O O O O O DATE O".split(" ")
+      val it: Iterator[Token] = dataInterface.getTokensOfSentence(4789)
+
+      var i = 0
+      while(it.hasNext) {
+        val token: Token = it.next
+        assert(token.text === actualTokens(i))
+        assert(token.posTag === actualPOStags(i))
+        assert(token.nerTag === actualNERtags(i))
+        i += 1
+      }
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
+
+  test("getTokenById throws NoSuchElementException with invalid id") {
+    try {
+      intercept[NoSuchElementException] {
+        dataInterface.getTokenById(-1)
+        fail()
       }
     } catch {
       case ioe: IOException => fail(ioe.toString())

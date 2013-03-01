@@ -8,20 +8,22 @@ import com.mongodb.casbah.MongoClient
 
 object CreateMongoDB {
 
-  def extractData(fileName: String, parseFunc: ((String, MongoCollection) => Unit), collection: MongoCollection) {
+  def extractData(fileName: String, parseFunc: ((String, MongoCollection, Int) => Int), collection: MongoCollection, startId: Int = 0): Int = {
 //    println("extracting from file "+fileName)
 
+    var currId = startId
     val it: Iterator[String] = Source.fromFile(fileName).getLines
     while (it.hasNext) {
 //      println(collection.toString())
       val line: String = it.next
 //      println(line)
-      parseFunc(line, collection)
+      currId = parseFunc(line, collection, currId)
     }
+    return currId
   }
 
 
-  def parseText(line: String, collection: MongoCollection) {
+  def parseText(line: String, collection: MongoCollection, lastId: Int): Int = {
     val parse = line.split("\t")
     val id: Int = parse(0).toInt
     val text = parse(1)
@@ -47,9 +49,12 @@ object CreateMongoDB {
 //        println("new record" + dbRecord)
       collection.update(query, dbRecord)
     }
+    return id
   }
 
-  def parseTokens(line: String, collection: MongoCollection) {
+  
+  def parseTokenizedData(line: String, collection: MongoCollection, lastId: Int, fieldName: String): Int = {
+    var tokenId = lastId
     val parse = line.split("\t")
     val id: Int = parse(0).toInt
     val tokens: Array[String] = parse(1).split(" ")
@@ -65,32 +70,62 @@ object CreateMongoDB {
 
       if (dbRecord == null) {
         // if there is no object for this sentence id, add a new object to the collection
-        dbRecord = MongoDBObject("sentenceId" -> id, "index" -> index)
+        tokenId += 1
+        dbRecord = MongoDBObject("sentenceId" -> id, "index" -> index, "tokenId" -> tokenId)
   //        println("old record" + dbRecord)
-        dbRecord += "text" -> token
+        dbRecord += fieldName -> token
   //        println("new record" + dbRecord)
         collection += dbRecord
       } else {
         // if there is an object for this sentence id, update it in the collection
   //        println("old record" + dbRecord)
-        dbRecord += "text" -> token
+        dbRecord += fieldName -> token
   //        println("new record" + dbRecord)
         collection.update(query, dbRecord)
       }
     }
-  }
-
-  def parsePOStags(line: String, record: MongoDBObject) {
-    val parse = line.split("\t")
-    val posTags: Array[String] = parse(1).split(" ")
-    record += "postags" -> posTags
+    return tokenId
   }
 
 
-  def parseNERtags(line: String, record: MongoDBObject) {
-    val parse = line.split("\t")
-    val nerTags: Array[String] = parse(1).split(" ")
-    record += "nertags" -> nerTags
+
+  def parseTokens(line: String, collection: MongoCollection, lastId: Int): Int = {
+    parseTokenizedData(line, collection, lastId, "text")
+  }
+
+  def parsePOStags(line: String, collection: MongoCollection, lastId: Int): Int = {
+    parseTokenizedData(line, collection, lastId, "postag")
+  }
+
+  def parseNERtags(line: String, collection: MongoCollection, lastId: Int): Int = {
+    parseTokenizedData(line, collection, lastId, "nertag")
+  }
+
+
+  def getIdCount(counters: MongoCollection, counterName: String): Int = {
+    val query: MongoDBObject = MongoDBObject("_id" -> counterName)
+    var dbRecord: MongoDBObject = counters.findOne(query) match {
+      case Some(record) => record
+      case None => null
+    }
+
+    return (if (dbRecord != null) dbRecord.as[Int]("seq") else 0)
+  }
+
+  def updateIdCount(counters: MongoCollection, counterName: String, count: Int) {
+    val query: MongoDBObject = MongoDBObject("_id" -> counterName)
+    var dbRecord: MongoDBObject = counters.findOne(query) match {
+      case Some(record) => record
+      case None => null
+    }
+
+    if (dbRecord == null) {
+      dbRecord = MongoDBObject("_id" -> counterName, "seq" -> count)
+      counters += dbRecord
+    } else {
+      dbRecord += "seq" -> count.asInstanceOf[Integer]
+      counters.update(query, dbRecord)
+    }
   }
 
 
@@ -100,14 +135,31 @@ object CreateMongoDB {
     MongoClient().dropDatabase(databasename)
     val mongoDB: MongoDB = MongoClient()(databasename)
 
+    val countersColl: MongoCollection = mongoDB("counters")
+
+    
+    var currSentenceId = getIdCount(countersColl, "sentenceId")
     val sentencesColl: MongoCollection = mongoDB("sentences")
     sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
-    extractData(dataPath + "sentences.text", parseText, sentencesColl)
+    currSentenceId = extractData(dataPath + "sentences.text", parseText, sentencesColl, currSentenceId)
+    updateIdCount(countersColl, "sentenceId", currSentenceId)
+
+    
+    var currTokenId = getIdCount(countersColl, "tokenId")
+
 
     val tokensColl: MongoCollection = mongoDB("tokens")
-    tokensColl.ensureIndex( MongoDBObject("_id" -> 1), MongoDBObject("unique" -> true))
+    tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
     tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
-    extractData(dataPath + "sentences.tokens", parseTokens, tokensColl)
+    currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
+    currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
+    currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
+
+    updateIdCount(countersColl, "tokenId", currTokenId)
+  }
+
+  def dropDatabase(databasename: String = "orsen") {
+    MongoClient().dropDatabase(databasename)
   }
 
 }
