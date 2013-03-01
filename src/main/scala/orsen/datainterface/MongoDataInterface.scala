@@ -69,7 +69,10 @@ class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
     */
   def getTokensOfSentence(sentenceId: Int): Iterator[Token] = {
     val query: MongoDBObject = MongoDBObject("sentenceId" -> sentenceId)
-    return new DBIterator[Token](mongoDB("sentences").find(query), deserializeToken)
+    val cursor: MongoCursor = mongoDB("tokens").find(query)
+    if (cursor.isEmpty) throw new NoSuchElementException()
+
+    return new DBIterator[Token](cursor, deserializeToken)
   }
 
 
@@ -80,7 +83,7 @@ class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
     * @throws NoSuchElementException if tokenId does not match any Token
     */
   def getTokenById(tokenId: Int): Token = {
-    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("_id" -> tokenId), "tokens")
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("tokenId" -> tokenId), "tokens")
     return deserializeToken(dbRecord)
   }
 
@@ -101,9 +104,11 @@ class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
   }
 
   private def deserializeToken(dbRecord: MongoDBObject): Token = {
-    val tId = dbRecord.as[Int]("_id")
+    val tId = dbRecord.as[Int]("tokenId")
     val sId = dbRecord.as[Int]("sentenceId")
     val text = dbRecord.as[String]("text")
+    val posTag = dbRecord.as[String]("postag")
+    val nerTag = dbRecord.as[String]("nertag")
     return new Token(tId, text, sId)
   }
 
