@@ -69,7 +69,7 @@ object CreateMongoDB {
   //        println("old record" + dbRecord)
         dbRecord += "text" -> token
   //        println("new record" + dbRecord)
-        collection.insert(dbRecord)
+        collection += dbRecord
       } else {
         // if there is an object for this sentence id, update it in the collection
   //        println("old record" + dbRecord)
@@ -102,7 +102,6 @@ object CreateMongoDB {
 
     val sentencesColl: MongoCollection = mongoDB("sentences")
     sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
-
     extractData(dataPath + "sentences.text", parseText, sentencesColl)
 
     val tokensColl: MongoCollection = mongoDB("tokens")

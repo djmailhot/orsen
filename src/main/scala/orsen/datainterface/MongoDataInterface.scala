@@ -6,7 +6,7 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 
 
-class MongoDataInterface(val dbname: String = "orsen") extends DataInterface {
+class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
 
   val mongoDB: MongoDB = MongoClient()(dbname)
 
