@@ -8,13 +8,13 @@ import org.scalatest.BeforeAndAfter
 
 import java.io.File
 
-class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
+class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter {
 
   val TestFilePath    = "/tmp/test_output.txt"
   var exampleEntity   = new Entity(42, "entity_name")
   var exampleSentence = new Sentence(39, Array(1, 2, 3))
-  var exampleMention  = new Mention(1, "mention_name", Array(39))
-  var candidates = Map()(1 -> 0.75,2->0.25)
+  var exampleMention  = new Mention(1, "mention_name", Array(39, 42))
+  var candidates = Map(1 -> 0.75,2->0.25)
 
   var noRemoveFlag = false
   before {
@@ -26,7 +26,6 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
       noRemoveFlag = true
       fail(TestFilePath + " exists already, so tests cannot run . Please remove it")
     }
-
     UnorganizedOutputWriter.setOutputFile(TestFilePath)
   }
 
@@ -55,7 +54,8 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter{
 
   test("writeMention formatting is right") {
     UnorganizedOutputWriter.writeMention(exampleMention, candidates)
-    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,1,0.75,2,0.25\n")
+    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,2,39,42,1,0.75,2,0.25\n")
   }
 
 }
+

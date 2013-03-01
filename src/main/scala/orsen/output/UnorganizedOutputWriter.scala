@@ -8,7 +8,7 @@ import org.scalamock.annotation.mock
   * All lines match one of the three formats:
   *   entity,id,name,description
   *   sentence,id,token_1_id,token_2_id,...
-  *   mention,id,name,candidate_1_id,candidate_1_probability,candidate_2_id,...
+  *   mention,id,name,token_count,token_1_id,token_2_id,...,candidate_1_id,candidate_1_probability,candidate_2_id,...
   *
   */
 object UnorganizedOutputWriter extends OutputWriter {
@@ -57,7 +57,11 @@ object UnorganizedOutputWriter extends OutputWriter {
     val candidatesList = candidates.foldLeft(Array[Any]()){
       (acc, candidate) => acc :+ candidate._1 :+ candidate._2
     }
-    val information = Array[Any]("mention", mention.id, mention.text) ++ candidates
+    val information = (Array[Any]("mention", mention.id, mention.text, mention.tokenIds.size)
+                                  ++ (mention.tokenIds ++ candidatesList))
+    println(information.mkString(","))
+    println(information(6))
     writeInformation(information)
   }
 }
+
