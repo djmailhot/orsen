@@ -24,19 +24,25 @@ object RawMatcher extends Detector {
 
   }
 
-  /** Builds a Map of [Entity Name(String)] to Array[Entity Id(Int)]
+  /** Builds a Map of [Entity Name(String)] to Array[Entity]
     *
-    * @return a Map of Entity Name to Array of Entity Ids
+    * @return a Map of Entity Name to Array of Entities
     */
-  def buildEntityTable(entities: Iterator[Entity]): Map[String, Array[Int]] = {
-    var entityTable = Map[String, Array[Int]]()
+  def buildEntityTable(entities: Iterator[Entity]): Map[String, Array[Entity]] = {
+    var entityTable = Map[String, Array[Entity]]()
     return entityTable
   }
 
   /** Returns a Map[Entity, Double]
     *
     */
-  def buildCandidates(entityTable: Map[String, Array[Int]], mention: Mention) {
-
+  def buildCandidates(entityTable: Map[String, Array[Entity]], mention: Mention): Map[Entity, Double] = {
+    if (!entityTable.contains(mention.text))
+      throw new NoSuchElementException
+    var candidates = entityTable(mention.text)
+    var candidateTable:Map[Entity, Double] = candidates.map{
+      (candidate) => (candidate->(1.0 / candidates.size))
+    }.toMap
+    return candidateTable
   }
 }

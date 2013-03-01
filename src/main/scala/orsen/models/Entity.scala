@@ -16,5 +16,4 @@ class Entity(entityId: Int, entityName: String) {
   var description: String = ""
 
   override def toString() = "<Entity|id: %d, name: %s>".format(this.id, this.name)
-
 }
