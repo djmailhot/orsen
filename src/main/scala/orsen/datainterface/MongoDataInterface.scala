@@ -109,7 +109,8 @@ class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
     val text = dbRecord.as[String]("text")
     val posTag = dbRecord.as[String]("postag")
     val nerTag = dbRecord.as[String]("nertag")
-    return new Token(tId, text, sId)
+    val token = new Token(tId, text, sId).addPOStag(posTag).addNERtag(nerTag)
+    return token
   }
 
 

@@ -119,16 +119,16 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
   test("getTokensOfSentence retrieves Token model objects with all expected fields (text, postag, nertag)") {
     try {
       val actualTokens = "It was Angola 's first election since a 27-year civil war ended in the country in 2002 .".split(" ")
-      val actualPOStags = "DT NN VBD CD NN , VBG TO DT NN .".split(" ")
-      val actualNERtags = "O O O PERCENT PERCENT O O O O O O".split(" ")
+      val actualPOStags = "PRP VBD NNP POS JJ NN IN DT JJ JJ NN VBD IN DT NN IN CD .".split(" ")
+      val actualNERtags = "O O LOCATION O ORDINAL O O O DURATION O O O O O O O DATE O".split(" ")
       val it: Iterator[Token] = dataInterface.getTokensOfSentence(4789)
 
       var i = 0
       while(it.hasNext) {
         val token: Token = it.next
         assert(token.text === actualTokens(i))
-        //assert(token.posTag === actualPOStags(i))
-        //assert(token.nerTag === actualNERtags(i))
+        assert(token.posTag === actualPOStags(i))
+        assert(token.nerTag === actualNERtags(i))
         i += 1
       }
     } catch {
