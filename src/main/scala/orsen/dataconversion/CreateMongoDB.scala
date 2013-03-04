@@ -25,7 +25,7 @@ object CreateMongoDB {
           printf("extracted %d lines\n", count)
         }
       } catch {
-        case e: Exception => printf("exception after %d lines, on line %s\n%s\n", count, line, e.toString())
+        case e: Exception => printf("exception after %d lines, on line %s\n%s\n", count, line, e.getStackTraceString)
       }
     }
     return currId
