@@ -21,13 +21,14 @@ object CreateMongoDB {
         currId = parseFunc(line, collection, currId)
 
         count += 1
-        if (count % 50000 == 0) {
-          printf("extracted %d lines\n", count)
+        if (count % 5000 == 0) {
+          printf(".")
         }
       } catch {
         case e: Exception => printf("exception after %d lines, on line %s\n%s\n", count, line, e.getStackTraceString)
       }
     }
+    printf("complete\n")
     return currId
   }
 
