@@ -155,8 +155,7 @@ object CreateMongoDB {
 
 
     val tokensColl: MongoCollection = mongoDB("tokens")
-    tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
-    tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
+    tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1, "tokenId" -> 1), MongoDBObject("unique" -> true))
     currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
