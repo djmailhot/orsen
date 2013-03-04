@@ -21,7 +21,7 @@ object CreateMongoDB {
         currId = parseFunc(line, collection, currId)
 
         count += 1
-        if (count % 1000 == 0) {
+        if (count % 50000 == 0) {
           printf("extracted %d lines\n", count)
         }
       } catch {
