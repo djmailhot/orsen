@@ -9,7 +9,8 @@ object StubDataInterface extends DataInterface {
   val mockedEntities = Array(
       new Entity(1, "Luanda"),
       new Entity(2, "Angola"),
-      new Entity(3, "Popular Movement for the Liberation of Angola")
+      new Entity(3, "Popular Movement for the Liberation of Angola"),
+      new Entity(4, "Angola")
   )
 
   val mockedSentences = (4787 to 4796 toArray).map((id) => new Sentence(id, Array[Int]()))

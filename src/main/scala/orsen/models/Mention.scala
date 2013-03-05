@@ -11,6 +11,9 @@ class Mention(_id: Int, _text: String, _tokenIds: Array[Int]) {
   def this(_id: Int, _text: String, _tokens: Array[Token]) {
     this(_id, _text, _tokens.map((t) => t.id))
   }
+  def this(_id: Int, _text: String, _token: Token) {
+    this(_id, _text, Array(_token))
+  }
 
   /** The unique id of this Mention */
   def id: Int = _id

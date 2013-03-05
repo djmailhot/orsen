@@ -13,20 +13,23 @@ import scala.collection.mutable
   */
 object RawMatcher extends Detector {
 
-  def run() {
+  def main(arguments: Array[String]) {
     // Dump all Entities to output
     writeEntities(dataInterface.getEntities())
     // Build Hash Table of Entities by name
-    // For every sentence
-    // For every word of every sentence
-    // Build match, write match
-
+    var entityTable = buildEntityTable(dataInterface.getEntities())
+    dataInterface.getSentences().foreach { (sentence) =>
+      sentence.tokenIterator.foreach { (token) =>
+        findAndWriteCandidates(entityTable, token)
+      }
+    }
   }
 
   /** Writes all entity information to the OutputWriter */
   def writeEntities(entities: Iterator[Entity]) {
-
+    entities.foreach((entity) => outputWriter.writeEntity(entity))
   }
+
 
   /** Builds a Map of [Entity Name(String)] to Array[Entity]
     *
@@ -46,13 +49,20 @@ object RawMatcher extends Detector {
   /** Returns a Map[Entity, Double]
     *
     */
-  def buildCandidates(entityTable: Map[String, Array[Entity]], mention: Mention): Map[Entity, Double] = {
+  def buildCandidates(entityTable: mutable.Map[String, mutable.ArrayBuffer[Entity]],
+                      mention: Mention): Map[Entity, Double] = {
     if (!entityTable.contains(mention.text))
-      throw new NoSuchElementException
+      return Map[Entity, Double]()
     var candidates = entityTable(mention.text)
     var candidateTable:Map[Entity, Double] = candidates.map{
       (candidate) => (candidate->(1.0 / candidates.size))
     }.toMap
     return candidateTable
+  }
+
+  def findAndWriteCandidates(entityTable: mutable.Map[String, mutable.ArrayBuffer[Entity]], token: Token) {
+    val mention = new Mention(token.id, token.text, token)
+    val candidates = buildCandidates(entityTable, mention)
+    outputWriter.writeMentionWithEntities(mention, candidates)
   }
 }

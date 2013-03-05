@@ -5,11 +5,13 @@ import orsen.models._
 import org.scalamock.annotation.mock
 
 /** An UnorganizedOutputWriter writes all output to a single file.
-  * All lines match one of the three formats:
-  *   entity,id,name,description
-  *   sentence,id,token_1_id,token_2_id,...
-  *   mention,id,name,token_count,token_1_id,token_2_id,...,candidate_1_id,candidate_1_probability,candidate_2_id,...
   *
+  * All lines match one of the three formats:
+  * <ul>
+  *  <li> entity,id,name,description</li>
+  *  <li> sentence,id,token_1_id,token_2_id,...</li>
+  *  <li> mention,id,name,token_count,token_1_id,token_2_id,...,candidate_count,candidate_1_id,candidate_1_probability,candidate_2_id,...</li>
+  * </ul>
   */
 object UnorganizedOutputWriter extends OutputWriter {
 
@@ -54,12 +56,16 @@ object UnorganizedOutputWriter extends OutputWriter {
   }
 
   def writeMention(mention: Mention, candidates: Map[Int, Double]) {
-    val candidatesList = candidates.foldLeft(Array[Any]()){
-      (acc, candidate) => acc :+ candidate._1 :+ candidate._2
+    val candidatesList = candidates.size +: candidates.foldLeft(Array[Any]()){
+      (acc, candidate) => acc :+ candidate._1 :+ formatDouble(candidate._2)
     }
     val information = (Array[Any]("mention", mention.id, mention.text, mention.tokenIds.size)
                                   ++ (mention.tokenIds ++ candidatesList))
     writeInformation(information)
+  }
+
+  def formatDouble(value: Double): String = {
+    return "%.4f".format(value)
   }
 }
 

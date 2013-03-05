@@ -6,11 +6,12 @@ import orsen.models._
 import org.scalatest.FunSuite
 import org.scalatest.BeforeAndAfter
 
+import scala.collection.mutable
 import java.io.File
 
 class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter {
 
-  val TestFilePath    = "/tmp/test_output.txt"
+  val TestFilePath    = "/tmp/orsen_unorganized_output_writer_test_output.txt"
   var exampleEntity   = new Entity(42, "entity_name")
   var exampleSentence = new Sentence(39, Array(1, 2, 3))
   var exampleMention  = new Mention(1, "mention_name", Array(39, 42))
@@ -20,6 +21,8 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter {
   before {
     exampleEntity.description = "example_description"
 
+    // TODO: Find a better way to stop contention
+    Thread.sleep(50)
     // Make sure that TestFilePath cannot collide with an existing file
     var outputFileProbe = new File(TestFilePath)
     if (outputFileProbe.exists) {
@@ -54,8 +57,24 @@ class UnorganizedOutputWriterTests extends FunSuite with BeforeAndAfter {
 
   test("writeMention formatting is right") {
     UnorganizedOutputWriter.writeMention(exampleMention, candidates)
-    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,2,39,42,1,0.75,2,0.25\n")
+    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,2,39,42,2,1,0.7500,2,0.2500\n")
+  }
+
+  test("writeMention formatting for empty case is right") {
+    UnorganizedOutputWriter.writeMention(exampleMention, Map[Int, Double]())
+    assert(scala.io.Source.fromFile(TestFilePath).mkString === "mention,1,mention_name,2,39,42,0\n")
+  }
+
+  test("writeMentionWithEntities formatting is right") {
+    val entities = Array(new Entity(1, "a", "example_description"),
+                         new Entity(2, "a"),
+                         new Entity(3, "a"))
+    var candidateEntities = Map(entities(0) -> 1.0 / 3,
+                                entities(1) -> 1.0 / 3,
+                                entities(2) -> 1.0 / 3)
+    var expected = "mention,1,mention_name,2,39,42,3,1,0.3333,2,0.3333,3,0.3333\n"
+    UnorganizedOutputWriter.writeMentionWithEntities(exampleMention, candidateEntities)
+    assert(scala.io.Source.fromFile(TestFilePath).mkString === expected)
   }
 
 }
-

@@ -6,14 +6,17 @@ package orsen.models
   * @param id the Entity's unique id
   * @param name the Entity's name
   */
-class Entity(entityId: Int, entityName: String) {
+class Entity(_id: Int, _name: String, _description: String) {
+  def this(_id: Int, _name: String) {
+    this(_id, _name, "")
+  }
 
   /** The unique id of this Entity */
-  def id: Int = entityId
+  def id: Int = _id
   /** The name of this Entity */
-  def name: String = entityName
+  def name: String = _name
   /** A description of this Entity */
-  var description: String = ""
+  var description: String = _description
 
   override def toString() = "<Entity|id: %d, name: %s>".format(this.id, this.name)
 }

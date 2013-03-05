@@ -20,4 +20,11 @@ class MentionTest extends FunSuite {
     assert(mention.tokenIds === Array(1, 2, 3))
   }
 
+  test("The Token constructor should be sane") {
+    var mention = new Mention(39, "banana", new Token(39, "", 1))
+    assert(mention.id === 39)
+    assert(mention.text === "banana")
+    assert(mention.tokenIds === Array(39))
+  }
+
 }

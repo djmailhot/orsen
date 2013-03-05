@@ -18,7 +18,7 @@ class Sentence(sentenceId: Int, _tokenIds: Array[Int]) {
   /** The raw tokenized text of this Sentence */
   // def getText: String = sentenceTokens.mkString(" ")
 
-  def tokenIterator(): Iterator[Token] = {
+  def tokenIterator: Iterator[Token] = {
     // TODO: Come from arbitrary DataInterface specified in a config file
     StubDataInterface.getTokensOfSentence(this.id)
   }
