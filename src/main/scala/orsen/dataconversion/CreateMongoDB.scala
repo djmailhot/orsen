@@ -9,16 +9,26 @@ import com.mongodb.casbah.MongoClient
 object CreateMongoDB {
 
   def extractData(fileName: String, parseFunc: ((String, MongoCollection, Int) => Int), collection: MongoCollection, startId: Int = 0): Int = {
-//    println("extracting from file "+fileName)
+    printf("extracting from file %s\n", fileName)
 
+    var line = ""
+    var count = 0
     var currId = startId
     val it: Iterator[String] = Source.fromFile(fileName).getLines
     while (it.hasNext) {
-//      println(collection.toString())
-      val line: String = it.next
-//      println(line)
-      currId = parseFunc(line, collection, currId)
+      try {
+        line = it.next
+        currId = parseFunc(line, collection, currId)
+
+        count += 1
+        if (count % 5000 == 0) {
+          printf(".")
+        }
+      } catch {
+        case e: Exception => printf("exception after %d lines, on line %s\n%s\n", count, line, e.getStackTraceString)
+      }
     }
+    printf("complete\n")
     return currId
   }
 
@@ -38,15 +48,11 @@ object CreateMongoDB {
     if (dbRecord == null) {
       // if there is no object for this sentence id, add a new object to the collection
       dbRecord = MongoDBObject("sentenceId" -> id)
-//        println("old record" + dbRecord)
       dbRecord += "text" -> text
-//        println("new record" + dbRecord)
       collection += dbRecord
     } else {
       // if there is an object for this sentence id, update it in the collection
-//        println("old record" + dbRecord)
       dbRecord += "text" -> text
-//        println("new record" + dbRecord)
       collection.update(query, dbRecord)
     }
     return id
@@ -72,15 +78,11 @@ object CreateMongoDB {
         // if there is no object for this sentence id, add a new object to the collection
         tokenId += 1
         dbRecord = MongoDBObject("sentenceId" -> id, "index" -> index, "tokenId" -> tokenId)
-  //        println("old record" + dbRecord)
         dbRecord += fieldName -> token
-  //        println("new record" + dbRecord)
         collection += dbRecord
       } else {
         // if there is an object for this sentence id, update it in the collection
-  //        println("old record" + dbRecord)
         dbRecord += fieldName -> token
-  //        println("new record" + dbRecord)
         collection.update(query, dbRecord)
       }
     }
@@ -130,7 +132,11 @@ object CreateMongoDB {
 
 
   def createDatabase(databasename: String = "orsen", databasepath: String = "prod") {
-    val dataPath: String = "data/" + databasepath + "/"
+    val dataPath: String = databasepath match {
+      case "prod" => "data/prod/"
+      case "test" => "data/test/"
+      case _ => databasepath
+    }
 
     MongoClient().dropDatabase(databasename)
     val mongoDB: MongoDB = MongoClient()(databasename)
@@ -149,8 +155,7 @@ object CreateMongoDB {
 
 
     val tokensColl: MongoCollection = mongoDB("tokens")
-    tokensColl.ensureIndex( MongoDBObject("tokenId" -> 1), MongoDBObject("unique" -> true))
-    tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1) )
+    tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1, "tokenId" -> 1), MongoDBObject("unique" -> true))
     currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
