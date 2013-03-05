@@ -167,4 +167,7 @@ object CreateMongoDB {
     MongoClient().dropDatabase(databasename)
   }
 
+  def main(arguments: Array[String]) {
+    createDatabase()
+  }
 }

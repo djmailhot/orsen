@@ -2,6 +2,7 @@ package orsen.models
 
 // TODO: Come from arbitrary DataInterface specified in a config file
 import orsen.datainterface.stub.StubDataInterface
+import orsen.detectors._
 
 /** A Sentence that represents one sentence in a body of text. A sentence
   * more formally consists of an ordered list of tokens
@@ -20,7 +21,7 @@ class Sentence(sentenceId: Int, _tokenIds: Array[Int]) {
 
   def tokenIterator: Iterator[Token] = {
     // TODO: Come from arbitrary DataInterface specified in a config file
-    StubDataInterface.getTokensOfSentence(this.id)
+    RawMatcher.dataInterface.getTokensOfSentence(this.id)
   }
 
   override def toString() = "<Sentence|id: %d>".format(this.id)

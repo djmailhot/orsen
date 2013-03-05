@@ -6,12 +6,17 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 
 
-class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
+object MongoDataInterface extends DataInterface {
 
-  val mongoDB: MongoDB = MongoClient()(dbname)
+  var dbname: String = "orsen"
+  var mongoDB: MongoDB = MongoClient()(dbname)
 
-
-
+  /** Resets the MongoDataInterface the new _dbname
+    */
+  def resetDataInterface(_dbname: String) {
+    dbname = _dbname
+    mongoDB = MongoClient()(dbname)
+  }
 
   /** Returns an iterator over all sentences in the data corpus.
     * Sentences are represented by Sentence model objects.
@@ -38,7 +43,7 @@ class MongoDataInterface(dbname: String = "orsen") extends DataInterface {
     * @return an iterator of Entity objects
     */
   def getEntities(): Iterator[Entity] = {
-    return null
+    return Array[Entity]().iterator
   }
 
   /** Returns the Entity that is associated with this entityId.

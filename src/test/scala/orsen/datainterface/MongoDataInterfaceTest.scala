@@ -12,8 +12,12 @@ import org.scalatest.BeforeAndAfterAll
 class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 
   val saltedDbName = "test" + new Random().nextInt()
+  val dataInterface =  MongoDataInterface
 
+
+// TODO all
   override def beforeAll(configMap: Map[String, Any]) {
+    MongoDataInterface.resetDataInterface(saltedDbName)
     try {
       CreateMongoDB.createDatabase(saltedDbName, "test")
     } catch {
@@ -21,16 +25,14 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
     }
   }
 
+
+// TODO all
   override def afterAll(configMap: Map[String, Any]) {
     try {
       CreateMongoDB.dropDatabase(saltedDbName)
     } catch {
       case ioe: IOException => fail(ioe.toString())
     }
-  }
-
-  def dataInterface: MongoDataInterface = {
-    return new MongoDataInterface(saltedDbName)
   }
 
   /*************
