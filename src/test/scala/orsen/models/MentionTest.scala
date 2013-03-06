@@ -27,4 +27,11 @@ class MentionTest extends FunSuite {
     assert(mention.tokenIds === Array(39))
   }
 
+  test("Equals and Hashcode should report equality for different Mentions of same ID") {
+    var mention_one = new Mention(39, "banana", 1)
+    var mention_two = new Mention(39, "banana", 1)
+    assert(mention_one.hashCode() === mention_two.hashCode())
+    assert(mention_one === mention_two)
+  }
+
 }

@@ -25,4 +25,11 @@ class Sentence(sentenceId: Int, _tokenIds: Array[Int]) {
   }
 
   override def toString() = "<Sentence|id: %d>".format(this.id)
+
+  override def hashCode() = id.hashCode()
+
+  override def equals(other: Any) = other match {
+    case that: Sentence => this.id == that.id
+    case _ => false
+  }
 }

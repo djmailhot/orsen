@@ -19,4 +19,11 @@ class Entity(_id: Int, _name: String, _description: String) {
   var description: String = _description
 
   override def toString() = "<Entity|id: %d, name: %s>".format(this.id, this.name)
+
+  override def hashCode() = id.hashCode()
+
+  override def equals(other: Any) = other match {
+    case that: Entity => this.id == that.id
+    case _ => false
+  }
 }

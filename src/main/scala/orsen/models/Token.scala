@@ -34,6 +34,13 @@ class Token(_id: Int, _text: String, _sentenceId: Int, _posTag: String, _nerTag:
 
 
   override def toString() = "Token|id: %d, text: %s".format(this.id, this.text)
+
+  override def hashCode() = id.hashCode()
+
+  override def equals(other: Any) = other match {
+    case that: Token => this.id == that.id
+    case _ => false
+  }
 }
 
 object Token {
