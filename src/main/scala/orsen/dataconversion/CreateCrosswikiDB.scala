@@ -49,7 +49,7 @@ object CreateCrosswikiDB {
     val mongoDB: MongoDB = MongoClient()(databasename)
 
     val dictionaryColl = mongoDB("dictionary")
-    extractData(dataPath + "/dictionary", extractDictionary, dictionaryColl)
+    extractData(dataPath + "dictionary.txt", extractDictionary, dictionaryColl)
   }
 
   def dropDatabase(databasename: String = "crosswiki") {
