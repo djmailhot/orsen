@@ -17,10 +17,10 @@ object CreateMongoDB {
     val it: Iterator[String] = Source.fromFile(fileName).getLines
     while (it.hasNext) {
       try {
+        count += 1
         line = it.next
         currId = parseFunc(line, collection, currId)
 
-        count += 1
         if (count % 5000 == 0) {
           printf(".")
         }
@@ -138,7 +138,6 @@ object CreateMongoDB {
       case _ => databasepath
     }
 
-    MongoClient().dropDatabase(databasename)
     val mongoDB: MongoDB = MongoClient()(databasename)
 
     val countersColl: MongoCollection = mongoDB("counters")
