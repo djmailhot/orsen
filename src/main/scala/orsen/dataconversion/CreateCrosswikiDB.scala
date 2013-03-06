@@ -6,9 +6,9 @@ import com.mongodb.casbah.Imports._
 import com.mongodb.casbah.MongoClient
 
 
-object CreateMongoDB {
+object CreateCrosswikiDB {
 
-  def extractData(fileName: String, parseFunc: ((String, MongoCollection)), collection: MongoCollection) {
+  def extractData(fileName: String, parseFunc: ((String, MongoCollection) => Unit), collection: MongoCollection) {
     printf("extracting from file %s\n", fileName)
 
     var line = ""
@@ -44,7 +44,7 @@ object CreateMongoDB {
 
 
   def createDatabase(dataPath: String) {
-    databasename = "crosswiki"
+    val databasename = "crosswiki"
 
     val mongoDB: MongoDB = MongoClient()(databasename)
 
@@ -52,11 +52,8 @@ object CreateMongoDB {
     extractData(dataPath + "/dictionary", extractDictionary, dictionaryColl)
   }
 
-  def dropDatabase(databasename: String = "orsen") {
+  def dropDatabase(databasename: String = "crosswiki") {
     MongoClient().dropDatabase(databasename)
   }
 
-  def main(arguments: Array[String]) {
-    createDatabase()
-  }
 }
