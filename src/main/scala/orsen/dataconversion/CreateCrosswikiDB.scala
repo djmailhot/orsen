@@ -33,24 +33,28 @@ object CreateCrosswikiDB {
 
   def extractDictionary(line: String, collection: MongoCollection) {
     val parse = line.split("\t")
-    val mention = parse(0)
+    val mention = parse(0)//.strip()
     val scoreParse = parse(1).split(" ")
-    val score = scoreParse(0)
-    val entity = scoreParse(1)
+    val score = scoreParse(0)//.strip()
+    val entity = scoreParse(1)//.strip()
 
     val record = MongoDBObject("mention" -> mention, "score" -> score, "entity" -> entity)
     collection += record
   }
 
 
-  def createDatabase(dataPath: String) {
-    val databasename = "crosswiki"
+  def createDatabase(databasename: String = "crosswiki", databasepath: String = "data/prod/") {
+    val dataPath: String = databasepath match {
+      case "prod" => "data/prod/"
+      case "test" => "data/test/"
+      case _ => databasepath
+    }
 
     val mongoDB: MongoDB = MongoClient()(databasename)
 
     val dictionaryColl = mongoDB("dictionary")
     extractData(dataPath + "dictionary.txt", extractDictionary, dictionaryColl)
-    dictionaryColl.ensureIndex( MongoDBObject("mention" -> 1), MongoDBObject("unique" -> true))
+    dictionaryColl.ensureIndex( MongoDBObject("mention" -> 1) )
   }
 
   def dropDatabase(databasename: String = "crosswiki") {
