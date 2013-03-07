@@ -37,7 +37,7 @@ class ExperimentTests extends FunSuite {
                                                          (entities(3),25.0))
                       )
 
-  val ratings = mutable.Map[Mention, Int]( // TODO INCOMPLETE
+  val ratings = mutable.Map[Mention, Int](
                   mentions(0)->(-1), // Not in list
                   mentions(1)->0, // 0th rank
                   mentions(2)->1 // 1th rank
@@ -46,7 +46,7 @@ class ExperimentTests extends FunSuite {
 
   test("findMentions works in the common cases") {
 
-    var matches = Array(mentions(1)->candidates(0), // One candidate
+    var linkedCandidates = Array(mentions(1)->candidates(0), // One candidate
                         new Mention(3, "tsd", 5)->candidates(1), // Multiple candidates
                         new Mention(3, "tsd", 5)->candidates(2),// Multiple candidates
                         new Mention(4, "led", 6)->candidates(0) // Not a target
@@ -56,7 +56,7 @@ class ExperimentTests extends FunSuite {
     var expected = computedLinks
 
     // From one ordering of entities
-    var results  = Experiment.findMentions(goldStandard, matches.iterator)
+    var results  = Experiment.findMentions(goldStandard, linkedCandidates.iterator)
     assert(expected.size === results.size)
     results.foreach {
       (keyValue) =>
@@ -68,7 +68,7 @@ class ExperimentTests extends FunSuite {
 
     // Handle both same reference and different (equivalent) instance case
     // Handle both single entity and multiple entity cases
-    var matches = Array(mentions(1)->candidates(0), // One candidate
+    var linkedCandidates = Array(mentions(1)->candidates(0), // One candidate
                         new Mention(3, "tsd", 5)->candidates(2),// Multiple candidates
                         new Mention(3, "tsd", 5)->candidates(1), // Multiple candidates
                         new Mention(4, "led", 6)->candidates(0) // Not a target
@@ -76,7 +76,7 @@ class ExperimentTests extends FunSuite {
     var expected = computedLinks
 
     // From one ordering of entities
-    var results  = Experiment.findMentions(goldStandard, matches.iterator)
+    var results  = Experiment.findMentions(goldStandard, linkedCandidates.iterator)
     assert(expected.size === results.size)
     results.foreach {
       (keyValue) =>
@@ -87,6 +87,21 @@ class ExperimentTests extends FunSuite {
   test("createRatings works in the common cases") {
     var expected = ratings
     var results = Experiment.createRatings(goldStandard, computedLinks)
+    assert(expected === results)
+  }
+
+  test("reverseRatings works in the common cases") {
+    val tempRatings = mutable.Map[Mention, Int](
+                    mentions(0)->(-1),
+                    mentions(1)->0,
+                    mentions(2)->1,
+                    new Mention(10, "asd", 5)->0,
+                    new Mention(12, "asd", 5)->0,
+                    new Mention(13, "asd", 5)->0,
+                    new Mention(14, "asd", 5)->(-1)
+                  )
+    val expected = mutable.Map[Int, Int](-1->2,0->4,1->1)
+    var results  = Experiment.reverseRatings(tempRatings)
     assert(expected === results)
   }
 

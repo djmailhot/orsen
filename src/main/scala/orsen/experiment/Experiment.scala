@@ -8,43 +8,23 @@ import scala.collection.mutable
  */
 object Experiment {
   def main(arguments: Array[String]) {
-    // TODO Read all real mention=>entity matches
-    var goldStandard = gatherGoldStandard()
-    var matches = findMentions(goldStandard, getCandidateIterator())
-    // TODO Read Data, searching for said mentions
-    // TODO For each mention, build up the list of candidates
-    // TODO How often is the real entity inside of the list of candidates?
+    var goldStandard  = gatherGoldStandard()
+    var computedLinks = findMentions(goldStandard, getCandidateIterator())
+    var ratings = createRatings(goldStandard, computedLinks)
+    var reverse = reverseRatings(ratings)
+    writeReverseRatings(reverse)
   }
 
+  /* return a Map[Mention, Entity] of mention/entity pairs that are known to be genuine */
   def gatherGoldStandard(): Map[Mention, Entity] = {
     // TODO: Implement
     return Map[Mention, Entity]()
   }
-  
+
+  // return an iterator with which to loop through all mentions and their candidates 
   def getCandidateIterator(): Iterator[(Mention, (Entity, Double))] = {
     // TODO: Implement
     return Array[(Mention, (Entity, Double))]().iterator
-  }
-
-  def createRatings(goldStandard: Map[Mention, Entity],
-                    computedLinks: mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]]): mutable.Map[Mention, Int] = {
-    var ratings = mutable.Map[Mention, Int]()
-    goldStandard.foreach {
-      (standard) =>
-      val mention = standard._1
-      val trueEntity = standard._2
-      val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
-      candidates.zipWithIndex.foreach {
-        case(((candidate, _)), index) =>
-        if (candidate == trueEntity) {
-          ratings.put(mention, index)
-        }
-      }
-      // Doesn't exist
-      if (!ratings.contains(mention))
-        ratings.put(mention, -1)
-    }
-    return ratings
   }
 
   /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the target mentions
@@ -76,5 +56,40 @@ object Experiment {
       results.put(mention, entityArr.sortWith(_._2>_._2))
     }
     return results
+  }
+  def createRatings(goldStandard: Map[Mention, Entity],
+                    computedLinks: mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]]):
+                      mutable.Map[Mention, Int] = {
+    var ratings = mutable.Map[Mention, Int]()
+    goldStandard.foreach {
+      (standard) =>
+      val mention = standard._1
+      val trueEntity = standard._2
+      val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
+      candidates.zipWithIndex.foreach {
+        case(((candidate, _)), index) =>
+        if (candidate == trueEntity) {
+          ratings.put(mention, index)
+        }
+      }
+      // Doesn't exist
+      if (!ratings.contains(mention))
+        ratings.put(mention, -1)
+    }
+    return ratings
+  }
+
+  def reverseRatings(ratings: mutable.Map[Mention, Int]): mutable.Map[Int, Int] = {
+    var reverse = mutable.Map[Int, Int]()
+    ratings.foreach {
+      case (mention, rank) => reverse.put(rank, (reverse.get(rank) getOrElse 0) + 1)
+    }
+    return reverse
+  }
+
+  def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
+    reverse.foreach {
+      case (value, quantity) => printf("%d %d\n", (value, quantity))
+    }
   }
 }
