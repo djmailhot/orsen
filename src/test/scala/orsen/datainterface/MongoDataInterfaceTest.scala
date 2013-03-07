@@ -3,6 +3,7 @@ package test.orsen.datainterface
 import java.io.IOException
 import java.util.Random
 import orsen.dataconversion.CreateMongoDB
+import orsen.dataconversion.CreateCrosswikiDB
 import orsen.datainterface.DataInterface
 import orsen.datainterface.MongoDataInterface
 import orsen.models._
@@ -11,15 +12,18 @@ import org.scalatest.BeforeAndAfterAll
 
 class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 
-  val saltedDbName = "test" + new Random().nextInt()
+  val salt = new Random().nextInt()
+  val sentenceDBName = "test" + salt
+  val crosswikiDBName = "test" + (salt + 1)
   val dataInterface =  MongoDataInterface
 
 
 // TODO all
   override def beforeAll(configMap: Map[String, Any]) {
-    MongoDataInterface.resetDataInterface(saltedDbName)
+    MongoDataInterface.resetDataInterface(sentenceDBName, crosswikiDBName)
     try {
-      CreateMongoDB.createDatabase(saltedDbName, "test")
+      CreateMongoDB.createDatabase(sentenceDBName, "test")
+      CreateCrosswikiDB.createDatabase(crosswikiDBName, "test")
     } catch {
       case ioe: IOException => fail(ioe.toString())
     }
@@ -29,7 +33,8 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 // TODO all
   override def afterAll(configMap: Map[String, Any]) {
     try {
-      CreateMongoDB.dropDatabase(saltedDbName)
+      CreateMongoDB.dropDatabase(sentenceDBName)
+      CreateCrosswikiDB.dropDatabase(crosswikiDBName)
     } catch {
       case ioe: IOException => fail(ioe.toString())
     }
@@ -143,6 +148,22 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
       intercept[NoSuchElementException] {
         dataInterface.getTokenById(-1)
         fail()
+      }
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
+
+
+  /*******************
+   * CrosswikiEntrys *
+   *******************/
+
+  test("getCrosswikiEntrysByMention returns an iterator of CrosswikiEntry objects") {
+    try {
+      var it = dataInterface.getCrosswikiEntrysByMention("assembly constituency")
+      while (it.hasNext) {
+        assert(it.next.isInstanceOf[CrosswikiEntry])
       }
     } catch {
       case ioe: IOException => fail(ioe.toString())

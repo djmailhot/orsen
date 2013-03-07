@@ -8,14 +8,18 @@ import com.mongodb.casbah.MongoClient
 
 object MongoDataInterface extends DataInterface {
 
-  var dbname: String = "orsen"
-  var mongoDB: MongoDB = MongoClient()(dbname)
+  var crosswikiDBName: String = "crosswiki"
+  var crosswikiDB: MongoDB = MongoClient()(crosswikiDBName)
+  var sentenceDBName: String = "orsen"
+  var sentenceDB: MongoDB = MongoClient()(sentenceDBName)
 
-  /** Resets the MongoDataInterface the new _dbname
+  /** Resets the MongoDataInterface the new _sentenceDBName
     */
-  def resetDataInterface(_dbname: String) {
-    dbname = _dbname
-    mongoDB = MongoClient()(dbname)
+  def resetDataInterface(_sentenceDBName: String = "orsen", _crosswikiDBName: String = "crosswiki") {
+    sentenceDBName = _sentenceDBName
+    sentenceDB = MongoClient()(sentenceDBName)
+    crosswikiDBName = _crosswikiDBName
+    crosswikiDB = MongoClient()(crosswikiDBName)
   }
 
   /** Returns an iterator over all sentences in the data corpus.
@@ -24,7 +28,7 @@ object MongoDataInterface extends DataInterface {
     * @return an iterator of Sentence objects
     */
   def getSentences(): Iterator[Sentence] = {
-    return new DBIterator[Sentence](mongoDB("sentences").find(), deserializeSentence)
+    return new DBIterator[Sentence](sentenceDB("sentences").find(), deserializeSentence)
   }
 
   /** Returns the sentence that is associated with this sentenceId.
@@ -55,14 +59,14 @@ object MongoDataInterface extends DataInterface {
     return null
   }
 
-
   /** Returns an iterator over all tokens in the data corpus.
     * Tokens are represented by Token model objects.
     *
     * @return an iterator of Token objects
+    * @throws NoSuchElementException if no matches found
     */
   def getTokens(): Iterator[Token] = {
-    return new DBIterator[Token](mongoDB("tokens").find(), deserializeToken)
+    return new DBIterator[Token](sentenceDB("tokens").find(), deserializeToken)
   }
 
 
@@ -74,7 +78,7 @@ object MongoDataInterface extends DataInterface {
     */
   def getTokensOfSentence(sentenceId: Int): Iterator[Token] = {
     val query: MongoDBObject = MongoDBObject("sentenceId" -> sentenceId)
-    val cursor: MongoCursor = mongoDB("tokens").find(query)
+    val cursor: MongoCursor = sentenceDB("tokens").find(query)
     if (cursor.isEmpty) throw new NoSuchElementException()
 
     return new DBIterator[Token](cursor, deserializeToken)
@@ -92,9 +96,23 @@ object MongoDataInterface extends DataInterface {
     return deserializeToken(dbRecord)
   }
 
+  /** Returns an iterator over all CrosswikiEntrys that match this mention text
+    * CrosswikiEntrys are represented by CrosswikiEntry model objects.
+    *
+    * @return an iterator of CrosswikiEntry objects
+    * @throws NoSuchElementException if no matches found
+    */
+  def getCrosswikiEntrysByMention(mention: String): Iterator[CrosswikiEntry] = {
+    // add a leading space because of stupid input data
+    val query: MongoDBObject = MongoDBObject("mention" -> (" "+mention))
+    val cursor: MongoCursor = crosswikiDB("dictionary").find(query)
+    if (cursor.isEmpty) throw new NoSuchElementException()
+
+    return new DBIterator[CrosswikiEntry](cursor, deserializeCrosswikiEntry)
+  }
 
   private def fetchOne(query: MongoDBObject, collectionName: String): MongoDBObject = {
-    val collection: MongoCollection = mongoDB(collectionName)
+    val collection: MongoCollection = sentenceDB(collectionName)
     val dbRecord: MongoDBObject = collection.findOne(query) match {
       case Some(record) => record
       case None => throw new NoSuchElementException()
@@ -118,6 +136,13 @@ object MongoDataInterface extends DataInterface {
     return token
   }
 
+  private def deserializeCrosswikiEntry(dbRecord: MongoDBObject): CrosswikiEntry = {
+    val mention = dbRecord.as[String]("mention")
+    val entity = dbRecord.as[String]("entity")
+    val score = dbRecord.as[String]("score").toDouble
+    val entry = new CrosswikiEntry(mention, entity, score)
+    return entry
+  }
 
   private class DBIterator[R](dbCursor: MongoCursor, deserializeFunc: (MongoDBObject) => R) extends Iterator[R] {
     def hasNext(): Boolean = {
