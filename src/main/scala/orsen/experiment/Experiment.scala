@@ -27,8 +27,24 @@ object Experiment {
   }
 
   def createRatings(goldStandard: Map[Mention, Entity],
-                    computedLinks: mutable.Map[Mention, mutable.ArrayBuffer[Entity]]): Map[Mention, Int] = {
-    return Map[Mention, Int]()
+                    computedLinks: mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]]): mutable.Map[Mention, Int] = {
+    var ratings = mutable.Map[Mention, Int]()
+    goldStandard.foreach {
+      (standard) =>
+      val mention = standard._1
+      val trueEntity = standard._2
+      val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
+      candidates.zipWithIndex.foreach {
+        case(((candidate, _)), index) =>
+        if (candidate == trueEntity) {
+          ratings.put(mention, index)
+        }
+      }
+      // Doesn't exist
+      if (!ratings.contains(mention))
+        ratings.put(mention, -1)
+    }
+    return ratings
   }
 
   /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the target mentions
@@ -50,14 +66,13 @@ object Experiment {
         results.put(mention, entityArr)
       }
     }
-// sort by 2nd element
-// Sorting.quickSort(pairs)(Ordering.by[(String, Int, Int), Int](_._2)
 
+    // Sort
     results.foreach {
       (candidateList) =>
       var mention = candidateList._1
       var entityArr = candidateList._2
-      
+      // The lack of something like ConcurrentModificationException is Intredasting.......
       results.put(mention, entityArr.sortWith(_._2>_._2))
     }
     return results

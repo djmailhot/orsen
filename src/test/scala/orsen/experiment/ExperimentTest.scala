@@ -25,22 +25,22 @@ class ExperimentTests extends FunSuite {
   val goldStandard = Map[Mention, Entity](
                         mentions(0)->entities(0),
                         mentions(1)->entities(1),
-                        mentions(2)->entities(2))
+                        mentions(2)->entities(3))
 
   val candidates  = Array(((entities(1), 100.0)),
                           ((entities(2), 75.0)),
                           ((entities(3), 25.0)))
 
-  val computedLinks = Map[Mention, mutable.ArrayBuffer[(Entity, Double)]](
+  val computedLinks = mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]](
                         mentions(1)->mutable.ArrayBuffer((entities(1),100.0)),
                         mentions(2)->mutable.ArrayBuffer((entities(2),75.0),
                                                          (entities(3),25.0))
                       )
 
-  val ratings = Map[Mention, Int]( // TODO INCOMPLETE
-                  mentions(0)->(-1),
-                  mentions(1)->0,
-                  mentions(2)->1
+  val ratings = mutable.Map[Mention, Int]( // TODO INCOMPLETE
+                  mentions(0)->(-1), // Not in list
+                  mentions(1)->0, // 0th rank
+                  mentions(2)->1 // 1th rank
                 )
 
 
@@ -85,7 +85,9 @@ class ExperimentTests extends FunSuite {
   }
 
   test("createRatings works in the common cases") {
-    // Experiment.createRatings(goldStandard, computedLinks)
+    var expected = ratings
+    var results = Experiment.createRatings(goldStandard, computedLinks)
+    assert(expected === results)
   }
 
 
