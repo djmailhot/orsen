@@ -46,6 +46,6 @@ object NERChainer extends Detector {
    */
   def retrieveMatchingEntities(mention: Mention): Map[Entity, Double] = {
     // TODO:
-    return null
+    return Map[Entity, Double]()
   }
 }
