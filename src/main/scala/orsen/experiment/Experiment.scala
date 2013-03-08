@@ -42,7 +42,6 @@ object Experiment {
         var entityArr:mutable.ArrayBuffer[(Entity, Double)] =
           (results.get(mention) getOrElse mutable.ArrayBuffer[(Entity, Double)]())
         entityArr += ((entity, probability))
-        println(entityArr)
         results.put(mention, entityArr)
       }
     }

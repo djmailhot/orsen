@@ -1,4 +1,4 @@
-package orsen.detector
+package orsen.detectors
 
 import orsen.datainterface._
 import orsen.datainterface.stub._

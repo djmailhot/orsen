@@ -11,6 +11,12 @@ import orsen.detectors._
   * @param tokenIds an array of tokenized text making up the Sentence.  
   */
 class Sentence(sentenceId: Int, _tokenIds: Array[Int]) {
+  def this(_sentenceId:Int) {
+    this(_sentenceId, Array[Int]())
+  }
+  def this(_sentenceId: Int, _tokens: Array[Token]) {
+    this(_sentenceId, _tokens.map((token) => token.id))
+  }
 
   /** The unique id of this Sentence */
   def id: Int = sentenceId

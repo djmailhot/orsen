@@ -1,5 +1,6 @@
-
 package orsen.models
+
+import scala.collection.mutable
 
 /** A Mention represents a token or n-gram of tokens that might reference an Entity
   *
@@ -13,6 +14,9 @@ package orsen.models
 class Mention(_id: Int, _text: String, _tokenIds: Array[Int]) {
   def this(_id: Int, _text: String, _tokens: Array[Token]) {
     this(_id, _text, _tokens.map((t) => t.id))
+  }
+  def this(_id: Int, _text: String, _tokens: mutable.ArrayBuffer[Token]) {
+    this(_id, _text, _tokens.toArray)
   }
   def this(_id: Int, _text: String, _token: Token) {
     this(_id, _text, Array(_token))

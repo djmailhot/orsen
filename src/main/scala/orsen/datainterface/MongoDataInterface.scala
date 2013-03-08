@@ -123,7 +123,7 @@ object MongoDataInterface extends DataInterface {
 
   private def deserializeSentence(dbRecord: MongoDBObject): Sentence = {
     val id = dbRecord.as[Int]("sentenceId")
-    return new Sentence(id, null)
+    return new Sentence(id)
   }
 
   private def deserializeToken(dbRecord: MongoDBObject): Token = {

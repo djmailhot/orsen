@@ -1,6 +1,5 @@
 package orsen.detectors
 
-import orsen.detector.Detector
 import orsen.models._
 import orsen.datainterface.stub._
 import orsen.output._
