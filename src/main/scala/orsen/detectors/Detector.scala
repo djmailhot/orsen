@@ -16,7 +16,7 @@ trait Detector {
 
   // TODO: These should come from a config file
   // TODO: These probably should be immutable, but leave as var for the sake of testing
-  var dataInterface: DataInterface = MongoDataInterface
+  var dataInterface: DataInterface = StubDataInterface
   var outputWriter: OutputWriter   = UnorganizedOutputWriter
 
   /** Runs the Detector algorithm **/

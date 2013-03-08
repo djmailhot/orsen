@@ -7,6 +7,8 @@ import scala.collection.mutable
  *
  */
 object Experiment {
+  val DataFilePath = "/tmp/orsen_unorganized_output_writer_output.txt"
+
   def main(arguments: Array[String]) {
     var goldStandard  = gatherGoldStandard()
     var computedLinks = findMentions(goldStandard, getCandidateIterator())
@@ -23,8 +25,43 @@ object Experiment {
 
   // return an iterator with which to loop through all mentions and their candidates 
   def getCandidateIterator(): Iterator[(Mention, (Entity, Double))] = {
-    // TODO: Implement
-    return Array[(Mention, (Entity, Double))]().iterator
+    var text = scala.io.Source.fromFile(DataFilePath).mkString
+    // TODO: This is horrible
+    return computeCandidateIterator(text)
+  }
+
+
+  //TODO: This is so inefficient that everybody died
+  def computeCandidateIterator(text: String): Iterator[(Mention, (Entity, Double))] = {
+    var results =  mutable.ArrayBuffer[(Mention, (Entity, Double))]()
+    text.split("\n").map {
+      (line) =>
+      val pieces = line.split(",")
+      val mention = new Mention(pieces(1).toInt, pieces(2))
+      val candidateStartIndex =  (4 + pieces(3).toInt)
+      val candidateCount = pieces(candidateStartIndex).toInt
+      val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
+
+      var entities      = mutable.ArrayBuffer[Entity]()
+      var probabilities = mutable.ArrayBuffer[Double]()
+      candidates.zipWithIndex.foreach {
+        case (entityOrProbability, index) =>
+        if (index % 2 == 0) {
+          // Entity Id
+          entities += new Entity(entityOrProbability.toInt, "", "")
+
+        } else {
+          // Entity Probability
+          probabilities += entityOrProbability.toDouble
+        }
+      }
+
+      entities.zip(probabilities).foreach {
+        case(entity, probability) =>
+          results += ((mention, ((entity, probability))))
+      }
+    }
+    return results.iterator
   }
 
   /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the target mentions
@@ -87,8 +124,8 @@ object Experiment {
   }
 
   def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
-    reverse.foreach {
-      case (value, quantity) => printf("%d %d\n", (value, quantity))
+    reverse.zipWithIndex.foreach {
+      case ((value, quantity), index) => printf("%d %d %d\n", index, value, quantity)
     }
   }
 }

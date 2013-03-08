@@ -105,5 +105,22 @@ class ExperimentTests extends FunSuite {
     assert(expected === results)
   }
 
+  test("computeCandidateIterator works in some case oh god") {
+val text  = "mention,5,Xinhua,1,5,0\nmention,6,-RRB-,1,6,0\nmention,7,Angola,1,7,2,2,0.5000,4,0.5000\nmention,8,'s,1,8,0"
+
+    val expected = Array[(Mention, (Entity, Double))](
+      (new Mention(7, "Angola", Array(7)), ((new Entity(2, "", ""), 0.5000))),
+      (new Mention(7, "Angola", Array(7)), ((new Entity(4, "", ""), 0.5000)))
+    ).iterator
+
+    val results  = Experiment.computeCandidateIterator(text)
+    println(results.mkString("|||||"))
+    assert(expected.size === results.size)
+    results.zip(expected).foreach {
+      case(expectation, result) =>
+        assert(expectation === result)
+    }
+  }
+
 
 }
