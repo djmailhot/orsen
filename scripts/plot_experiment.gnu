@@ -2,9 +2,9 @@ set terminal png
 set output "/tmp/orsen_experiment_output/plot.png"
 set autoscale
 
-set xlabel "True Entity's Computed Rank k"
+set xlabel "Gold Standard Entity's Computed Rank k"
 set ylabel "Quantity of Samples"
-set title "Quality of True Entity Computed Ranks"
+set title "Quality of Gold Standard Entity Computed Ranks"
 # set key bottom right
 set key top right
 

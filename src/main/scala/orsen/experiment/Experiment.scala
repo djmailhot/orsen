@@ -64,7 +64,7 @@ object Experiment {
     return results.iterator
   }
 
-  /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the target mentions
+  /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the gold standard mentions
    */
   def findMentions(goldStandard: Map[Mention, Entity],
                    candidateIterator: Iterator[(Mention, (Entity, Double))]
@@ -124,8 +124,10 @@ object Experiment {
   }
 
   def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
-    reverse.zipWithIndex.foreach {
-      case ((value, quantity), index) => printf("%d %d %d\n", index, value, quantity)
+    printf("# GraphIndex Rank Quantity")
+    reverse.toArray.zipWithIndex.foreach {
+      case ((-1, quantity), index) => printf("%d %s %d\n", index, "Missing", quantity)
+      case ((rank, quantity), index) => printf("%d %d %d\n", index, rank, quantity)
     }
   }
 }
