@@ -113,18 +113,29 @@ object CreateMongoDB {
   }
 
   def parseDictionary(line: String, dictionaryColl: MongoCollection, entityColl: MongoCollection, lastId: Int): Int = {
-    var entityId = lastId + 1
+    var entityId = lastId
     val parse = line.split("\t")
     val mention = parse(0).trim()
     val scoreParse = parse(1).split(" ")
     val score = scoreParse(0).trim()
     val entity = scoreParse(1).trim()
 
-    val dictRecord = MongoDBObject("mentionText" -> mention, "score" -> score, "entityId" -> entityId)
-    dictionaryColl += dictRecord
+    val query: MongoDBObject = MongoDBObject("entity" -> entity)
+    var dbRecord: MongoDBObject = entityColl.findOne(query) match {
+      case Some(record) => record
+      case None => null
+    }
 
-    val entRecord = MongoDBObject("entityId" -> entityId, "entity" -> entity)
-    entityColl += entRecord
+    if (dbRecord == null) {
+      // if there is no object for this entity, add a new object to the collection
+      entityId += 1
+      dbRecord = MongoDBObject("entityId" -> entityId, "entity" -> entity)
+      entityColl += dbRecord
+    }
+    // if there is an object for this entity, do nothing
+
+    val dictRecord = MongoDBObject("mentionText" -> mention, "score" -> score, "entityText" -> entity)
+    dictionaryColl += dictRecord
 
     return entityId
   }
@@ -177,20 +188,20 @@ object CreateMongoDB {
       case _ => databasepath
     }
 
-    val sentenceDB: MongoDB = MongoClient()(databasename)
+    val mongoDB: MongoDB = MongoClient()(databasename)
 
-    val countersColl: MongoCollection = sentenceDB("counters")
+    val countersColl: MongoCollection = mongoDB("counters")
 
     
     var currSentenceId = getIdCount(countersColl, "sentenceId")
-    val sentencesColl: MongoCollection = sentenceDB("sentences")
+    val sentencesColl: MongoCollection = mongoDB("sentences")
     sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
     currSentenceId = extractData(dataPath + "sentences.text", parseText, sentencesColl, currSentenceId)
     updateIdCount(countersColl, "sentenceId", currSentenceId)
 
     
     var currTokenId = getIdCount(countersColl, "tokenId")
-    val tokensColl: MongoCollection = sentenceDB("tokens")
+    val tokensColl: MongoCollection = mongoDB("tokens")
     tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1, "tokenId" -> 1), MongoDBObject("unique" -> true))
     currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
@@ -207,16 +218,16 @@ object CreateMongoDB {
       case _ => databasepath
     }
 
-    val sentenceDB: MongoDB = MongoClient()(databasename)
+    val mongoDB: MongoDB = MongoClient()(databasename)
 
-    val countersColl: MongoCollection = sentenceDB("counters")
+    val countersColl: MongoCollection = mongoDB("counters")
 
     // cross wiki data
     var currEntityId = getIdCount(countersColl, "tokenId")
-    val dictionaryColl: MongoCollection = sentenceDB("dictionary")
-    val entityColl: MongoCollection = sentenceDB("entities")
+    val dictionaryColl: MongoCollection = mongoDB("dictionary")
+    val entityColl: MongoCollection = mongoDB("entities")
     currEntityId = extractCrosswiki(dataPath + "dictionary.txt", parseDictionary, dictionaryColl, entityColl, currEntityId)
-    entityColl.ensureIndex( MongoDBObject("entityId" -> 1), MongoDBObject("unique" -> true))
+    entityColl.ensureIndex( MongoDBObject("entity" -> 1), MongoDBObject("unique" -> true))
     dictionaryColl.ensureIndex( MongoDBObject("mentionText" -> 1) )
 
     updateIdCount(countersColl, "entityId", currEntityId)

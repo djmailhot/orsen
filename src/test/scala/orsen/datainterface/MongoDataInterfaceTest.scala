@@ -13,18 +13,16 @@ import org.scalatest.BeforeAndAfterAll
 class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 
   val salt = new Random().nextInt()
-  val sentenceDBName = "test" + salt
-  val crosswikiDBName = "test" + (salt + 1)
+  val mongoDBName = "test" + salt
   val dataInterface =  MongoDataInterface
 
 
 // TODO all
   override def beforeAll(configMap: Map[String, Any]) {
-    MongoDataInterface.resetDataInterface(sentenceDBName, crosswikiDBName)
+    MongoDataInterface.resetDataInterface(mongoDBName)
     try {
-      CreateMongoDB.createDatabase(sentenceDBName, "test")
-      CreateMongoDB.createCrosswikiDatabase(sentenceDBName, "test")
-      CreateCrosswikiDB.createDatabase(crosswikiDBName, "test")
+      CreateMongoDB.createDatabase(mongoDBName, "test")
+      CreateMongoDB.createCrosswikiDatabase(mongoDBName, "test")
     } catch {
       case ioe: IOException => fail(ioe.toString())
     }
@@ -34,8 +32,7 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
 // TODO all
   override def afterAll(configMap: Map[String, Any]) {
     try {
-      CreateMongoDB.dropDatabase(sentenceDBName)
-      CreateCrosswikiDB.dropDatabase(crosswikiDBName)
+      CreateMongoDB.dropDatabase(mongoDBName)
     } catch {
       case ioe: IOException => fail(ioe.toString())
     }

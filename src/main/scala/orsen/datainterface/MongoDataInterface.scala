@@ -8,18 +8,14 @@ import com.mongodb.casbah.MongoClient
 
 object MongoDataInterface extends DataInterface {
 
-  var crosswikiDBName: String = "crosswiki"
-  var crosswikiDB: MongoDB = MongoClient()(crosswikiDBName)
-  var sentenceDBName: String = "orsen"
-  var sentenceDB: MongoDB = MongoClient()(sentenceDBName)
+  var mongoDBName: String = "orsen"
+  var mongoDB: MongoDB = MongoClient()(mongoDBName)
 
-  /** Resets the MongoDataInterface the new _sentenceDBName
+  /** Resets the MongoDataInterface the new _mongoDBName
     */
-  def resetDataInterface(_sentenceDBName: String = "orsen", _crosswikiDBName: String = "crosswiki") {
-    sentenceDBName = _sentenceDBName
-    sentenceDB = MongoClient()(sentenceDBName)
-    crosswikiDBName = _crosswikiDBName
-    crosswikiDB = MongoClient()(crosswikiDBName)
+  def resetDataInterface(_mongoDBName: String = "orsen") {
+    mongoDBName = _mongoDBName
+    mongoDB = MongoClient()(mongoDBName)
   }
 
   /** Returns an iterator over all sentences in the data corpus.
@@ -28,7 +24,7 @@ object MongoDataInterface extends DataInterface {
     * @return an iterator of Sentence objects
     */
   def getSentences(): Iterator[Sentence] = {
-    return new DBIterator[Sentence](sentenceDB("sentences").find(), deserializeSentence)
+    return new DBIterator[Sentence](mongoDB("sentences").find(), deserializeSentence)
   }
 
   /** Returns the sentence that is associated with this sentenceId.
@@ -47,7 +43,7 @@ object MongoDataInterface extends DataInterface {
     * @return an iterator of Entity objects
     */
   def getEntities(): Iterator[Entity] = {
-    return Array[Entity]().iterator
+    return new DBIterator[Entity](mongoDB("entities").find(), deserializeEntity)
   }
 
   /** Returns the Entity that is associated with this entityId.
@@ -56,7 +52,18 @@ object MongoDataInterface extends DataInterface {
     * @throws NoSuchElementException if entityId does not match any Entity
     */
   def getEntityById(entityId: Int): Entity = {
-    return null
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("entityId" -> entityId), "entities")
+    return deserializeEntity(dbRecord)
+  }
+
+  /** Returns the Entity that is associated with this entity name.
+    *
+    * @return an Entity object
+    * @throws NoSuchElementException if the name does not match any Entity
+    */
+  def getEntityByText(entityText: String): Entity = {
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("entityText" -> entityText), "entities")
+    return deserializeEntity(dbRecord)
   }
 
   /** Returns an iterator over all tokens in the data corpus.
@@ -66,7 +73,7 @@ object MongoDataInterface extends DataInterface {
     * @throws NoSuchElementException if no matches found
     */
   def getTokens(): Iterator[Token] = {
-    return new DBIterator[Token](sentenceDB("tokens").find(), deserializeToken)
+    return new DBIterator[Token](mongoDB("tokens").find(), deserializeToken)
   }
 
 
@@ -78,7 +85,7 @@ object MongoDataInterface extends DataInterface {
     */
   def getTokensOfSentence(sentenceId: Int): Iterator[Token] = {
     val query: MongoDBObject = MongoDBObject("sentenceId" -> sentenceId)
-    val cursor: MongoCursor = sentenceDB("tokens").find(query)
+    val cursor: MongoCursor = mongoDB("tokens").find(query)
     if (cursor.isEmpty) throw new NoSuchElementException()
 
     return new DBIterator[Token](cursor, deserializeToken)
@@ -105,14 +112,14 @@ object MongoDataInterface extends DataInterface {
   def getCrosswikiEntrysByMention(mention: String): Iterator[CrosswikiEntry] = {
     // add a leading space because of stupid input data
     val query: MongoDBObject = MongoDBObject("mentionText" -> (mention))
-    val cursor: MongoCursor = sentenceDB("dictionary").find(query)
+    val cursor: MongoCursor = mongoDB("dictionary").find(query)
     if (cursor.isEmpty) throw new NoSuchElementException()
 
     return new DBIterator[CrosswikiEntry](cursor, deserializeCrosswikiEntry)
   }
 
   private def fetchOne(query: MongoDBObject, collectionName: String): MongoDBObject = {
-    val collection: MongoCollection = sentenceDB(collectionName)
+    val collection: MongoCollection = mongoDB(collectionName)
     val dbRecord: MongoDBObject = collection.findOne(query) match {
       case Some(record) => record
       case None => throw new NoSuchElementException()
@@ -136,9 +143,15 @@ object MongoDataInterface extends DataInterface {
     return token
   }
 
+  private def deserializeEntity(dbRecord: MongoDBObject): Entity = {
+    val id = dbRecord.as[Int]("entityId")
+    val entity = dbRecord.as[String]("entity")
+    return new Entity(id, entity)
+  }
+
   private def deserializeCrosswikiEntry(dbRecord: MongoDBObject): CrosswikiEntry = {
     val mention = dbRecord.as[String]("mentionText")
-    val entity = dbRecord.as[Int]("entityId")
+    val entity = dbRecord.as[String]("entityText")
     val score = dbRecord.as[String]("score").toDouble
     val entry = new CrosswikiEntry(mention, entity, score)
     return entry
