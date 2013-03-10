@@ -32,6 +32,29 @@ object CreateMongoDB {
     return currId
   }
 
+  def extractCrosswiki(fileName: String, parseFunc: ((String, MongoCollection, MongoCollection, Int) => Int), collection1: MongoCollection, collection2: MongoCollection, startId: Int = 0): Int = {
+    printf("extracting from file %s\n", fileName)
+
+    var line = ""
+    var count = 0
+    var currId = startId
+    val it: Iterator[String] = Source.fromFile(fileName).getLines
+    while (it.hasNext) {
+      try {
+        count += 1
+        line = it.next
+        currId = parseFunc(line, collection1, collection2, currId)
+
+        if (count % 5000 == 0) {
+          printf(".")
+        }
+      } catch {
+        case e: Exception => printf("exception after %d lines, on line %s\n%s\n", count, line, e.getStackTraceString)
+      }
+    }
+    printf("complete\n")
+    return currId
+  }
 
   def parseText(line: String, collection: MongoCollection, lastId: Int): Int = {
     val parse = line.split("\t")
@@ -89,6 +112,22 @@ object CreateMongoDB {
     return tokenId
   }
 
+  def parseDictionary(line: String, dictionaryColl: MongoCollection, entityColl: MongoCollection, lastId: Int): Int = {
+    var entityId = lastId + 1
+    val parse = line.split("\t")
+    val mention = parse(0).trim()
+    val scoreParse = parse(1).split(" ")
+    val score = scoreParse(0).trim()
+    val entity = scoreParse(1).trim()
+
+    val dictRecord = MongoDBObject("mentionText" -> mention, "score" -> score, "entityId" -> entityId)
+    dictionaryColl += dictRecord
+
+    val entRecord = MongoDBObject("entityId" -> entityId, "entity" -> entity)
+    entityColl += entRecord
+
+    return entityId
+  }
 
 
   def parseTokens(line: String, collection: MongoCollection, lastId: Int): Int = {
@@ -138,28 +177,38 @@ object CreateMongoDB {
       case _ => databasepath
     }
 
-    val mongoDB: MongoDB = MongoClient()(databasename)
+    val sentenceDB: MongoDB = MongoClient()(databasename)
 
-    val countersColl: MongoCollection = mongoDB("counters")
+    val countersColl: MongoCollection = sentenceDB("counters")
 
     
     var currSentenceId = getIdCount(countersColl, "sentenceId")
-    val sentencesColl: MongoCollection = mongoDB("sentences")
+    val sentencesColl: MongoCollection = sentenceDB("sentences")
     sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
     currSentenceId = extractData(dataPath + "sentences.text", parseText, sentencesColl, currSentenceId)
     updateIdCount(countersColl, "sentenceId", currSentenceId)
 
     
     var currTokenId = getIdCount(countersColl, "tokenId")
-
-
-    val tokensColl: MongoCollection = mongoDB("tokens")
+    val tokensColl: MongoCollection = sentenceDB("tokens")
     tokensColl.ensureIndex( MongoDBObject("sentenceId" -> 1, "tokenId" -> 1), MongoDBObject("unique" -> true))
     currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
 
     updateIdCount(countersColl, "tokenId", currTokenId)
+
+
+
+    // cross wiki data
+    var currEntityId = getIdCount(countersColl, "tokenId")
+    val dictionaryColl: MongoCollection = sentenceDB("dictionary")
+    val entityColl: MongoCollection = sentenceDB("entities")
+    currEntityId = extractCrosswiki(dataPath + "dictionary.txt", parseDictionary, dictionaryColl, entityColl, currEntityId)
+    entityColl.ensureIndex( MongoDBObject("entityId" -> 1), MongoDBObject("unique" -> true))
+    dictionaryColl.ensureIndex( MongoDBObject("mentionText" -> 1) )
+
+    updateIdCount(countersColl, "entityId", currEntityId)
   }
 
   def dropDatabase(databasename: String = "orsen") {

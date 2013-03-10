@@ -104,8 +104,8 @@ object MongoDataInterface extends DataInterface {
     */
   def getCrosswikiEntrysByMention(mention: String): Iterator[CrosswikiEntry] = {
     // add a leading space because of stupid input data
-    val query: MongoDBObject = MongoDBObject("mention" -> (" "+mention))
-    val cursor: MongoCursor = crosswikiDB("dictionary").find(query)
+    val query: MongoDBObject = MongoDBObject("mentionText" -> (mention))
+    val cursor: MongoCursor = sentenceDB("dictionary").find(query)
     if (cursor.isEmpty) throw new NoSuchElementException()
 
     return new DBIterator[CrosswikiEntry](cursor, deserializeCrosswikiEntry)
@@ -137,8 +137,8 @@ object MongoDataInterface extends DataInterface {
   }
 
   private def deserializeCrosswikiEntry(dbRecord: MongoDBObject): CrosswikiEntry = {
-    val mention = dbRecord.as[String]("mention")
-    val entity = dbRecord.as[String]("entity")
+    val mention = dbRecord.as[String]("mentionText")
+    val entity = dbRecord.as[Int]("entityId")
     val score = dbRecord.as[String]("score").toDouble
     val entry = new CrosswikiEntry(mention, entity, score)
     return entry
