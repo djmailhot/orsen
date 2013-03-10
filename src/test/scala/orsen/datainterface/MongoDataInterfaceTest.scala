@@ -23,6 +23,7 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
     MongoDataInterface.resetDataInterface(sentenceDBName, crosswikiDBName)
     try {
       CreateMongoDB.createDatabase(sentenceDBName, "test")
+      CreateMongoDB.createCrosswikiDatabase(sentenceDBName, "test")
       CreateCrosswikiDB.createDatabase(crosswikiDBName, "test")
     } catch {
       case ioe: IOException => fail(ioe.toString())

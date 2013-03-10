@@ -197,8 +197,19 @@ object CreateMongoDB {
     currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
 
     updateIdCount(countersColl, "tokenId", currTokenId)
+  }
 
 
+  def createCrosswikiDatabase(databasename: String = "orsen", databasepath: String = "prod") {
+    val dataPath: String = databasepath match {
+      case "prod" => "data/prod/"
+      case "test" => "data/test/"
+      case _ => databasepath
+    }
+
+    val sentenceDB: MongoDB = MongoClient()(databasename)
+
+    val countersColl: MongoCollection = sentenceDB("counters")
 
     // cross wiki data
     var currEntityId = getIdCount(countersColl, "tokenId")
