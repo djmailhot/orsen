@@ -226,8 +226,8 @@ object CreateMongoDB {
     var currEntityId = getIdCount(countersColl, "tokenId")
     val dictionaryColl: MongoCollection = mongoDB("dictionary")
     val entityColl: MongoCollection = mongoDB("entities")
-    currEntityId = extractCrosswiki(dataPath + "dictionary.txt", parseDictionary, dictionaryColl, entityColl, currEntityId)
     entityColl.ensureIndex( MongoDBObject("entity" -> 1), MongoDBObject("unique" -> true))
+    currEntityId = extractCrosswiki(dataPath + "dictionary.txt", parseDictionary, dictionaryColl, entityColl, currEntityId)
     dictionaryColl.ensureIndex( MongoDBObject("mentionText" -> 1) )
 
     updateIdCount(countersColl, "entityId", currEntityId)
