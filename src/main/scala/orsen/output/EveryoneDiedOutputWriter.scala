@@ -17,7 +17,7 @@ object EveryoneDiedOutputWriter extends OutputWriter {
 
   // TODO: This should come from a config file
   /** The filename of the output file */
-  val targetFile = "/tmp/orsen_unorganized_output_writer_output.txt"
+  val targetFile = "/tmp/orsen_everyone_died_output_writer_output.txt"
 
   /** The FileWriter object that the UnorganizedOutputWriter writes to */
   var outputFile = new FileWriter(targetFile)

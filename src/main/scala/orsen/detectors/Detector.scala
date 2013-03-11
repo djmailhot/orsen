@@ -17,7 +17,7 @@ trait Detector {
   // TODO: These should come from a config file
   // TODO: These probably should be immutable, but leave as var for the sake of testing
   var dataInterface: DataInterface = MongoDataInterface
-  var outputWriter: OutputWriter   = UnorganizedOutputWriter
+  var outputWriter: OutputWriter   = EveryoneDiedOutputWriter
 
   /** Runs the Detector algorithm **/
   def main(argument: Array[String])

@@ -8,7 +8,7 @@ import scala.collection.mutable
  *
  */
 object BadExperiment {
-  val DataFilePath = "/tmp/orsen_unorganized_output_writer_output.txt"
+  val DataFilePath = "/tmp/orsen_everyone_died_output_writer_output.txt"
   val GoldFilePath = "/tmp/orsen_gold_standard.txt"
 
   def main(arguments: Array[String]) {
@@ -25,8 +25,12 @@ object BadExperiment {
     scala.io.Source.fromFile(GoldFilePath).mkString.split("\n").map{
       (line) =>
       var pieces = line.split("   ")
-      var entity = MongoDataInterface.getEntityByText(pieces(1))
-      pieces(1)->entity
+      try {
+        var entity = MongoDataInterface.getEntityByText(pieces(1))
+        pieces(1)->entity
+      } catch {
+        case nse: NoSuchElementException => ""->new Entity(-1, "")
+      }
     }.toMap
   }
 
@@ -43,7 +47,7 @@ object BadExperiment {
     var results =  mutable.ArrayBuffer[(String, (Entity, Double))]()
     text.split("\n").map {
       (line) =>
-      val pieces = line.split("|M461CD3L1M373RL0L|")
+      val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
       val candidateStartIndex =  (4 + pieces(3).toInt)
       val candidateCount = pieces(candidateStartIndex).toInt
@@ -131,7 +135,7 @@ object BadExperiment {
   }
 
   def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
-    printf("# GraphIndex Rank Quantity")
+    printf("# GraphIndex Rank Quantity\n")
     reverse.toArray.zipWithIndex.foreach {
       case ((-1, quantity), index) => printf("%d %s %d\n", index, "Missing", quantity)
       case ((rank, quantity), index) => printf("%d %d %d\n", index, rank, quantity)
