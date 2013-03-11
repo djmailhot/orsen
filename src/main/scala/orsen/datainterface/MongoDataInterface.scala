@@ -62,7 +62,7 @@ object MongoDataInterface extends DataInterface {
     * @throws NoSuchElementException if the name does not match any Entity
     */
   def getEntityByText(entityText: String): Entity = {
-    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("entityText" -> entityText), "entities")
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("entity" -> entityText), "entities")
     return deserializeEntity(dbRecord)
   }
 
@@ -113,7 +113,7 @@ object MongoDataInterface extends DataInterface {
     // add a leading space because of stupid input data
     val query: MongoDBObject = MongoDBObject("mentionText" -> (mention))
     val cursor: MongoCursor = mongoDB("dictionary").find(query)
-    if (cursor.isEmpty) throw new NoSuchElementException()
+    if (cursor.isEmpty) return None
 
     return new DBIterator[CrosswikiEntry](cursor, deserializeCrosswikiEntry)
   }
