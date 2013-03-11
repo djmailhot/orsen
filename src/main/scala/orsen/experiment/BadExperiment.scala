@@ -1,15 +1,18 @@
 package orsen.experiment
 
 import orsen.models._
+import orsen.datainterface._
 import scala.collection.mutable
 
 /* Runs an experiment over some Detector Output Data
  *
  */
-object Experiment {
+object BadExperiment {
   val DataFilePath = "/tmp/orsen_unorganized_output_writer_output.txt"
+  val GoldFilePath = "/tmp/orsen_gold_standard.txt"
 
   def main(arguments: Array[String]) {
+    MongoDataInterface.resetDataInterface("experiment")
     var goldStandard  = gatherGoldStandard()
     var computedLinks = findMentions(goldStandard, getCandidateIterator())
     var ratings = createRatings(goldStandard, computedLinks)
@@ -18,13 +21,17 @@ object Experiment {
   }
 
   /* return a Map[Mention, Entity] of mention/entity pairs that are known to be genuine */
-  def gatherGoldStandard(): Map[Mention, Entity] = {
-    // TODO
-    return Map[Mention, Entity]()
+  def gatherGoldStandard(): Map[String, Entity] = {
+    scala.io.Source.fromFile(GoldFilePath).mkString.split("\n").map{
+      (line) =>
+      var pieces = line.split("   ")
+      var entity = MongoDataInterface.getEntityByText(pieces(1))
+      pieces(1)->entity
+    }.toMap
   }
 
   // return an iterator with which to loop through all mentions and their candidates 
-  def getCandidateIterator(): Iterator[(Mention, (Entity, Double))] = {
+  def getCandidateIterator(): Iterator[(String, (Entity, Double))] = {
     var text = scala.io.Source.fromFile(DataFilePath).mkString
     // TODO: This is horrible
     return computeCandidateIterator(text)
@@ -32,12 +39,12 @@ object Experiment {
 
 
   //TODO: This is so inefficient that everybody died
-  def computeCandidateIterator(text: String): Iterator[(Mention, (Entity, Double))] = {
-    var results =  mutable.ArrayBuffer[(Mention, (Entity, Double))]()
+  def computeCandidateIterator(text: String): Iterator[(String, (Entity, Double))] = {
+    var results =  mutable.ArrayBuffer[(String, (Entity, Double))]()
     text.split("\n").map {
       (line) =>
-      val pieces = line.split(",")
-      val mention = new Mention(pieces(1).toInt, pieces(2))
+      val pieces = line.split("|M461CD3L1M373RL0L|")
+      val mention = pieces(2)
       val candidateStartIndex =  (4 + pieces(3).toInt)
       val candidateCount = pieces(candidateStartIndex).toInt
       val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
@@ -66,10 +73,10 @@ object Experiment {
 
   /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the gold standard mentions
    */
-  def findMentions(goldStandard: Map[Mention, Entity],
-                   candidateIterator: Iterator[(Mention, (Entity, Double))]
-                   ): mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]] = {
-    var results = mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]]()
+  def findMentions(goldStandard: Map[String, Entity],
+                   candidateIterator: Iterator[(String, (Entity, Double))]
+                   ): mutable.Map[String, mutable.ArrayBuffer[(Entity, Double)]] = {
+    var results = mutable.Map[String, mutable.ArrayBuffer[(Entity, Double)]]()
     candidateIterator.foreach {
       (pair) => 
       val mention = pair._1
@@ -93,10 +100,10 @@ object Experiment {
     }
     return results
   }
-  def createRatings(goldStandard: Map[Mention, Entity],
-                    computedLinks: mutable.Map[Mention, mutable.ArrayBuffer[(Entity, Double)]]):
-                      mutable.Map[Mention, Int] = {
-    var ratings = mutable.Map[Mention, Int]()
+  def createRatings(goldStandard: Map[String, Entity],
+                    computedLinks: mutable.Map[String, mutable.ArrayBuffer[(Entity, Double)]]):
+                      mutable.Map[String, Int] = {
+    var ratings = mutable.Map[String, Int]()
     goldStandard.foreach {
       (standard) =>
       val mention = standard._1
@@ -115,7 +122,7 @@ object Experiment {
     return ratings
   }
 
-  def reverseRatings(ratings: mutable.Map[Mention, Int]): mutable.Map[Int, Int] = {
+  def reverseRatings(ratings: mutable.Map[String, Int]): mutable.Map[Int, Int] = {
     var reverse = mutable.Map[Int, Int]()
     ratings.foreach {
       case (mention, rank) => reverse.put(rank, (reverse.get(rank) getOrElse 0) + 1)
