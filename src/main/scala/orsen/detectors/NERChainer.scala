@@ -14,6 +14,9 @@ object NERChainer extends Detector {
     // Dump all entities to output
     // For all sentences
     //    Generate Mentions
+
+    MongoDataInterface.resetDataInterface("experiment")
+
     dataInterface.getSentences().foreach { (sentence) =>
       val mentions = extractMentions(sentence.tokenIterator)
       val candidateMatches = mentions.foreach {
@@ -45,7 +48,16 @@ object NERChainer extends Detector {
   /* Given a mention, find all matching entities and their priors
    */
   def retrieveMatchingEntities(mention: Mention): Map[Entity, Double] = {
-    // TODO:
-    return Map[Entity, Double]()
+    try {
+      var crossWikiEntries = MongoDataInterface.getCrosswikiEntrysByMention(mention.text)
+      return crossWikiEntries.map{
+        (entry) =>
+        (MongoDataInterface.getEntityByText(entry.entityText)->entry.score)
+      }.toMap
+    } catch {
+      case nse: NoSuchElementException => return Map()
+    }
+    return Map()
   }
+
 }
