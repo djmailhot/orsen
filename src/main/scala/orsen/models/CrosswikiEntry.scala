@@ -16,5 +16,5 @@ class CrosswikiEntry(_mentionText: String, _entityText: String, _score: Double) 
   /** The probability of this CrosswikiEntry */
   def score: Double = _score
 
-  override def toString() = "<CrosswikiEntry|mentionText: %s, entityText: %d, prob: %f>".format(this.mentionText, this.entityText, this.score)
+  override def toString() = "<CrosswikiEntry|mentionText: %s, entityText: %s, prob: %f>".format(this.mentionText, this.entityText, this.score)
 }
