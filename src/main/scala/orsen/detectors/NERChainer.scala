@@ -15,7 +15,7 @@ object NERChainer extends Detector {
     // For all sentences
     //    Generate Mentions
 
-    MongoDataInterface.resetDataInterface("experiment")
+    MongoDataInterface.resetDataInterface("orsen")
 
     dataInterface.getSentences().foreach { (sentence) =>
       val mentions = extractMentions(sentence.tokenIterator)

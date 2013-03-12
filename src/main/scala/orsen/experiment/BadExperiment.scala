@@ -12,7 +12,7 @@ object BadExperiment {
   val GoldFilePath = "/tmp/orsen_gold_standard.txt"
 
   def main(arguments: Array[String]) {
-    MongoDataInterface.resetDataInterface("experiment")
+    MongoDataInterface.resetDataInterface("orsen")
     var goldStandard  = gatherGoldStandard()
     var computedLinks = findMentions(goldStandard, getCandidateIterator())
     var ratings = createRatings(goldStandard, computedLinks)
