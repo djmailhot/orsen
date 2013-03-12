@@ -28,6 +28,15 @@ trait OutputWriter {
     */
   def writeMention(mention: Mention, candidates: Map[Int, Double])
 
+
+  /** Writes the Mention to the OutputInterface's output target
+    *
+    * @param mention The mention to write. Assumed to only ever be written once
+    * @param candidates Candidates for the mention. Keys are Entities and their values the
+    * computed probability that the true Sense for the mention.
+    */
+  def writeMentionAsArray(mention: Mention, candidates: Array[(Int, Double)])
+
   /** Writes the Mention to the OutputInterface's output target
     *
     * @param mention The mention to write. Assumed to only ever be written once
@@ -40,5 +49,19 @@ trait OutputWriter {
       (candidate) => (candidate._1.id, candidate._2)
     }
     writeMention(mention, candidatesReformed)
+  }
+
+  /** Writes the Mention to the OutputInterface's output target
+    *
+    * @param mention The mention to write. Assumed to only ever be written once
+    * @param candidates Candidates for the mention. Keys are Entities and their values the
+    * computed probability that the true Sense for the mention.
+    */
+  def writeMentionWithEntitiesWithArray(mention: Mention, candidates: Array[(Entity, Double)]) {
+    /** A map of candidate(Entity) ids to their probabilities */
+    var candidatesReformed = candidates.map{
+      case(candidate) => (candidate._1.id, candidate._2)
+    }
+    writeMentionAsArray(mention, candidatesReformed)
   }
 }

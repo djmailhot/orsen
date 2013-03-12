@@ -64,6 +64,15 @@ object EveryoneDiedOutputWriter extends OutputWriter {
     writeInformation(information)
   }
 
+  def writeMentionAsArray(mention: Mention, candidates: Array[(Int, Double)]) {
+    val candidatesList = candidates.size +: candidates.foldLeft(Array[Any]()){
+      case(acc, candidate) => acc :+ candidate._1 :+ formatDouble(candidate._2)
+    }
+    val information = (Array[Any]("mention", mention.id, mention.text, mention.tokenIds.size)
+                                  ++ (mention.tokenIds ++ candidatesList))
+    writeInformation(information)
+  }
+
   def formatDouble(value: Double): String = {
     return "%.4f".format(value)
   }

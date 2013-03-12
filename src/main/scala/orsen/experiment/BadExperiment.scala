@@ -3,6 +3,7 @@ package orsen.experiment
 import orsen.models._
 import orsen.datainterface._
 import scala.collection.mutable
+import java.io.{File, FileWriter}
 
 /* Runs an experiment over some Detector Output Data
  *
@@ -13,16 +14,20 @@ object BadExperiment {
 
   def main(arguments: Array[String]) {
     MongoDataInterface.resetDataInterface("orsen")
-    var goldStandard  = gatherGoldStandard()
-    var computedLinks = findMentions(goldStandard, getCandidateIterator())
-    var ratings = createRatings(goldStandard, computedLinks)
-    var reverse = reverseRatings(ratings)
-    writeReverseRatings(reverse)
+    // val candidateIterator = getCandidateIterator()
+
+    // var goldStandard  = gatherGoldStandard()
+    // var computedLinks = findMentions(goldStandard, candidateIterator)
+    // var ratings = createRatings(goldStandard, computedLinks)
+    // var reverse = reverseRatings(ratings)
+    // writeReverseRatings(reverse)
+    // writeCandidateLists(candidateIterator, goldStandard)
+    hell(scala.io.Source.fromFile(DataFilePath).mkString)
   }
 
   /* return a Map[Mention, Entity] of mention/entity pairs that are known to be genuine */
   def gatherGoldStandard(): Map[String, Entity] = {
-    scala.io.Source.fromFile(GoldFilePath).mkString.split("\n").map{
+    scala.io.Source.fromFile(GoldFilePath, "ISO-8859-1").mkString.split("\n").map{
       (line) =>
       var pieces = line.split("   ")
       try {
@@ -49,30 +54,72 @@ object BadExperiment {
       (line) =>
       val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
-      val candidateStartIndex =  (4 + pieces(3).toInt)
-      val candidateCount = pieces(candidateStartIndex).toInt
-      val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
+      println("working on mention " + pieces(1))
+      if (pieces(3) == "818") {
+        ((mention, ((new Entity(9001, "kill me", ""), 9000.1))))
+      } else {
+        val candidateStartIndex =  (4 + pieces(3).toInt)
+        val candidateCount = pieces(candidateStartIndex).toInt
+        val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
 
-      var entities      = mutable.ArrayBuffer[Entity]()
-      var probabilities = mutable.ArrayBuffer[Double]()
-      candidates.zipWithIndex.foreach {
-        case (entityOrProbability, index) =>
-        if (index % 2 == 0) {
-          // Entity Id
-          entities += new Entity(entityOrProbability.toInt, "", "")
-
-        } else {
-          // Entity Probability
-          probabilities += entityOrProbability.toDouble
+        var entities      = mutable.ArrayBuffer[Entity]()
+        var probabilities = mutable.ArrayBuffer[Double]()
+        candidates.zipWithIndex.foreach {
+          case (entityOrProbability, index) =>
+          if (index % 2 == 0) {
+            // Entity Id
+            val id = entityOrProbability.toInt
+            // entities += new Entity(id, id.toString, "")
+              entities += MongoDataInterface.getEntityById(id)
+          } else {
+            // Entity Probability
+            probabilities += entityOrProbability.toDouble
+          }
         }
-      }
 
-      entities.zip(probabilities).foreach {
-        case(entity, probability) =>
-          results += ((mention, ((entity, probability))))
+        var computed = entities.zip(probabilities).foreach {
+          case(entity, probability) =>
+            results += ((mention, ((entity, probability))))
+        }
+        computed
       }
     }
     return results.iterator
+  }
+
+  def hell(text: String) {
+    var outputFile = new FileWriter("/tmp/orsen_candidate_list_output.txt")
+    outputFile.write("Mention\t gold =>\tCandidate 1, Candidate 2, Candidate 3, ...\n")
+    var goldStandard  = gatherGoldStandard().withDefaultValue(new Entity(10, "<Entity Not Found>", ""))
+    var results =  mutable.ArrayBuffer[(String, (Entity, Double))]()
+    text.split("\n").foreach {
+      (line) =>
+      var output = ""
+      val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
+      val mention = pieces(2)
+      println("working on mention " + pieces(1))
+      if (pieces(3) != "818") {
+        val candidateStartIndex =  (4 + pieces(3).toInt)
+        val candidateCount = pieces(candidateStartIndex).toInt
+        val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
+
+        var entities      = mutable.ArrayBuffer[Entity]()
+        var probabilities = mutable.ArrayBuffer[Double]()
+
+        output += mention + "\t" + goldStandard(mention) + "\t=>\t"
+        candidates.zipWithIndex.foreach {
+          case (entityOrProbability, index) =>
+          if (index % 2 == 0) {
+            // Entity Id
+            val id = entityOrProbability.toInt
+            // entities += new Entity(id, id.toString, "")
+              output += "\t" + MongoDataInterface.getEntityById(id).name
+          }
+        }
+      }
+      outputFile.write(output + "\n")
+    }
+    outputFile.close()
   }
 
   /* Runs through mention/(candidate/probability) pairs, looking for any that have one of the gold standard mentions
@@ -141,4 +188,26 @@ object BadExperiment {
       case ((rank, quantity), index) => printf("%d %d %d\n", index, rank, quantity)
     }
   }
+
+  def writeCandidateLists(candidates: Iterator[(String, (Entity, Double))], gold: Map[String, Entity]) = {
+    var golden = gold.withDefaultValue(new Entity(10, "<Entity Not Found>", ""))
+    var outputFile = new FileWriter("/tmp/orsen_candidate_list_output.txt")
+    outputFile.write("Mention\t gold =>\tCandidate 1, Candidate 2, Candidate 3, ...\n")
+    var prev:String = "stub@#$@#$"
+    var candidateNames:Array[String] = Array[String]()
+    candidates.foreach {
+      case (mention, ((entity, probability))) => 
+      if (prev != mention) {
+        outputFile.write("%s\t %s =>\t%s\n".format(prev, golden(prev).name,  candidateNames.mkString("\t")))
+        candidateNames = Array[String]()
+        candidateNames :+= entity.name
+      } else {
+        candidateNames :+= entity.name
+      }
+      prev = mention
+    }
+    outputFile.write("%s\t %s =>\t%s\n".format(prev, golden(prev).name,  candidateNames.mkString("\t")))
+    outputFile.close()
+  }
 }
+

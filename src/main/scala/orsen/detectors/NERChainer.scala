@@ -22,7 +22,7 @@ object NERChainer extends Detector {
       val candidateMatches = mentions.foreach {
         (mention) =>
         var candidates = retrieveMatchingEntities(mention)
-        outputWriter.writeMentionWithEntities(mention, candidates)
+        outputWriter.writeMentionWithEntitiesWithArray(mention, candidates)
       }
     }
   }
@@ -47,17 +47,17 @@ object NERChainer extends Detector {
 
   /* Given a mention, find all matching entities and their priors
    */
-  def retrieveMatchingEntities(mention: Mention): Map[Entity, Double] = {
+  def retrieveMatchingEntities(mention: Mention): Array[(Entity, Double)] = {
     try {
       var crossWikiEntries = MongoDataInterface.getCrosswikiEntrysByMention(mention.text)
       return crossWikiEntries.map{
         (entry) =>
         (MongoDataInterface.getEntityByText(entry.entityText)->entry.score)
-      }.toMap
+      }.toArray
     } catch {
-      case nse: NoSuchElementException => return Map()
+      case nse: NoSuchElementException => return Array()
     }
-    return Map()
+    return Array()
   }
 
 }
