@@ -26,7 +26,7 @@ object BadExperiment {
       (line) =>
       var pieces = line.split("   ")
       try {
-        var entity = MongoDataInterface.getEntityByText(pieces(1))
+        var entity = MongoDataInterface.getEntityByText(pieces(0))
         pieces(1)->entity
       } catch {
         case nse: NoSuchElementException => ""->new Entity(-1, "")
