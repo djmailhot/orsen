@@ -228,6 +228,7 @@ object CreateMongoDB {
     val entityColl: MongoCollection = mongoDB("entities")
     entityColl.ensureIndex( MongoDBObject("entity" -> 1), MongoDBObject("unique" -> true))
     currEntityId = extractCrosswiki(dataPath + "dictionary.txt", parseDictionary, dictionaryColl, entityColl, currEntityId)
+    entityColl.ensureIndex( MongoDBObject("entityId" -> 1), MongoDBObject("unique" -> true))
     dictionaryColl.ensureIndex( MongoDBObject("mentionText" -> 1) )
 
     updateIdCount(countersColl, "entityId", currEntityId)
