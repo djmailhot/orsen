@@ -66,6 +66,14 @@ object MongoDataInterface extends DataInterface {
     return deserializeEntity(dbRecord)
   }
 
+  /** Returns all Entities who name contain this subtoken.
+    *
+    * @return an iterator of Entity object
+    */
+  def getEntitiesBySubtoken(subtoken: String): Iterator[Entity] = {
+    return new DBIterator[Entity](mongoDB("entities").find(MongoDBObject("subtokens" -> subtoken)), deserializeEntity)
+  }
+
   /** Returns an iterator over all tokens in the data corpus.
     * Tokens are represented by Token model objects.
     *
