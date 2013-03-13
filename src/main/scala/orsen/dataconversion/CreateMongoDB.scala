@@ -181,6 +181,25 @@ object CreateMongoDB {
   }
 
 
+  def addMultikeyIndexToEntities(databasename: String = "orsen") {
+    val mongoDB: MongoDB = MongoClient()(databasename)
+
+    val entityColl: MongoCollection = mongoDB("entities")
+    val cursor: MongoCursor = entityColl.find()
+    while (cursor.hasNext) {
+      val record: MongoDBObject = cursor.next
+      val query: MongoDBObject = record.clone()
+      val entity = record.getAs[String]("entity") getOrElse ""
+      val subtokens = entity.split("_")
+      record += "subtokens" -> subtokens
+      entityColl.update(query, record)
+    }
+    entityColl.ensureIndex( MongoDBObject("subtokens" -> 1) )
+    
+
+  }
+
+
   def createDatabase(databasename: String = "orsen", databasepath: String = "prod") {
     val dataPath: String = databasepath match {
       case "prod" => "data/prod/"
