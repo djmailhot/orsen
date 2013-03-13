@@ -14,14 +14,15 @@ object BadExperiment {
 
   def main(arguments: Array[String]) {
     MongoDataInterface.resetDataInterface("orsen")
-    // val candidateIterator = getCandidateIterator()
 
-    // var goldStandard  = gatherGoldStandard()
-    // var computedLinks = findMentions(goldStandard, candidateIterator)
-    // var ratings = createRatings(goldStandard, computedLinks)
-    // var reverse = reverseRatings(ratings)
-    // writeReverseRatings(reverse)
-    // writeCandidateLists(candidateIterator, goldStandard)
+    val candidateIterator = getCandidateIterator()
+    var goldStandard  = gatherGoldStandard()
+    var computedLinks = findMentions(goldStandard, candidateIterator)
+    var ratings = createRatings(goldStandard, computedLinks)
+    var reverse = reverseRatings(ratings)
+    writeReverseRatings(reverse)
+    writeCandidateLists(candidateIterator, goldStandard)
+
     hell(scala.io.Source.fromFile(DataFilePath).mkString)
   }
 
@@ -55,7 +56,7 @@ object BadExperiment {
       val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
       println("working on mention " + pieces(1))
-      if (pieces(3) == "818") {
+      if (pieces(1) == "818") {
         ((mention, ((new Entity(9001, "kill me", ""), 9000.1))))
       } else {
         val candidateStartIndex =  (4 + pieces(3).toInt)
@@ -98,7 +99,7 @@ object BadExperiment {
       val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
       println("working on mention " + pieces(1))
-      if (pieces(3) != "818") {
+      if (pieces(1) != "818") {
         val candidateStartIndex =  (4 + pieces(3).toInt)
         val candidateCount = pieces(candidateStartIndex).toInt
         val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
@@ -106,14 +107,14 @@ object BadExperiment {
         var entities      = mutable.ArrayBuffer[Entity]()
         var probabilities = mutable.ArrayBuffer[Double]()
 
-        output += mention + "\t" + goldStandard(mention) + "\t=>\t"
+        output += "MENTION: " + mention + "\t" + goldStandard(mention) + ":"
         candidates.zipWithIndex.foreach {
           case (entityOrProbability, index) =>
           if (index % 2 == 0) {
             // Entity Id
             val id = entityOrProbability.toInt
             // entities += new Entity(id, id.toString, "")
-              output += "\t" + MongoDataInterface.getEntityById(id).name
+              output += "\n\t\t" + MongoDataInterface.getEntityById(id).name
           }
         }
       }

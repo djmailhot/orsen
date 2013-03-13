@@ -23,6 +23,8 @@ class Token(_id: Int, _text: String, _sentenceId: Int, _posTag: String, _nerTag:
   /** The Named Entity Recognizer tag for this Token */
   def nerTag: String = _nerTag
 
+  var index: Int = -1
+
 
   def addPOStag(_posTag: String): Token = {
     return new Token(id, text, sentenceId, _posTag, nerTag)
