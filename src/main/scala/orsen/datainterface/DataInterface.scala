@@ -57,4 +57,5 @@ trait DataInterface {
     * @throws NoSuchElementException if tokenId does not match any Token
     */
   def getTokenById(tokenId: Int): Token
+
 }
