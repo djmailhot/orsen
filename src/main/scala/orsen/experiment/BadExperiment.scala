@@ -160,16 +160,21 @@ object BadExperiment {
       (standard) =>
       val mention = standard._1
       val trueEntity = standard._2
-      val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
-      candidates.zipWithIndex.foreach {
-        case(((candidate, _)), index) =>
-        if (candidate == trueEntity) {
-          ratings.put(mention, index)
+      if (!computedLinks.contains(mention)) {
+        // There is no mention that matches the gold standard's 'mention'
+        ratings.put(mention, -2)
+      } else {
+        val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
+        candidates.zipWithIndex.foreach {
+          case(((candidate, _)), index) =>
+          if (candidate == trueEntity) {
+            ratings.put(mention, index)
+          }
         }
+        // Doesn't exist
+        if (!ratings.contains(mention))
+          ratings.put(mention, -1)
       }
-      // Doesn't exist
-      if (!ratings.contains(mention))
-        ratings.put(mention, -1)
     }
     return ratings
   }
@@ -183,11 +188,14 @@ object BadExperiment {
   }
 
   def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
-    printf("# GraphIndex Rank Quantity\n")
-    reverse.toArray.zipWithIndex.foreach {
-      case ((-1, quantity), index) => printf("%d %s %d\n", index, "Missing", quantity)
-      case ((rank, quantity), index) => printf("%d %d %d\n", index, rank, quantity)
+    var outputFile = new FileWriter("/tmp/orsen_bad_experiment_table.txt")
+    outputFile.write("# GraphIndex Rank Quantity\n")
+    reverse.toArray.sortWith(_._1<_._1).zipWithIndex.foreach {
+      case ((-1, quantity), index) => outputFile.write("%d %s %d\n".format(index, "No Matching Candidate", quantity))
+      case ((-2, quantity), index) => outputFile.write("%d %s %d\n".format(index, "No Matching Mention", quantity))
+      case ((rank, quantity), index) => outputFile.write("%d %d %d\n".format(index, rank, quantity))
     }
+    outputFile.close()
   }
 
   def writeCandidateLists(candidates: Iterator[(String, (Entity, Double))], gold: Map[String, Entity]) = {
