@@ -186,17 +186,24 @@ object CreateMongoDB {
 
     val entityColl: MongoCollection = mongoDB("entities")
     val cursor: MongoCursor = entityColl.find()
+
+    println("Updating "+cursor.size+" entity records")
+    var count = 0
     while (cursor.hasNext) {
+      count += 1
       val record: MongoDBObject = cursor.next
       val query: MongoDBObject = record.clone()
       val entity = record.getAs[String]("entity") getOrElse ""
       val subtokens = entity.split("_")
       record += "subtokens" -> subtokens
       entityColl.update(query, record)
-    }
-    entityColl.ensureIndex( MongoDBObject("subtokens" -> 1) )
-    
 
+      if (count % 5000 == 0) {
+        printf(".")
+      }
+    }
+    println("complete")
+    entityColl.ensureIndex( MongoDBObject("subtokens" -> 1) )
   }
 
 
