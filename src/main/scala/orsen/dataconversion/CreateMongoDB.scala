@@ -237,9 +237,9 @@ object CreateMongoDB {
   }
 
 
-  def createCrosswikiDatabase(databasename: String = "orsen", databasepath: String = "prod") {
+  def createCrosswikiDatabase(databasename: String = "orsen", databasepath: String = "gwd") {
     val dataPath: String = databasepath match {
-      case "prod" => "data/prod/"
+      case "prod" => "data/gwd/"
       case "test" => "data/test/"
       case _ => databasepath
     }
@@ -266,5 +266,6 @@ object CreateMongoDB {
 
   def main(arguments: Array[String]) {
     createDatabase()
+    createCrosswikiDatabase()
   }
 }
