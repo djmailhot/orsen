@@ -14,6 +14,7 @@ import scala.collection.mutable
 class Mention(_id: Int, _text: String, _tokenIds: Array[Int]) {
   def this(_id: Int, _text: String, _tokens: Array[Token]) {
     this(_id, _text, _tokens.map((t) => t.id))
+    tokens = _tokens
   }
   def this(_id: Int, _text: String, _tokens: mutable.ArrayBuffer[Token]) {
     this(_id, _text, _tokens.toArray)
@@ -34,6 +35,13 @@ class Mention(_id: Int, _text: String, _tokenIds: Array[Int]) {
   def text: String = _text
   /** The ids of the tokens that make up this Mention */
   def tokenIds: Array[Int] = _tokenIds
+
+  var tokens:Array[Token] = Array[Token]()
+
+  // TODO Fallback to datainterface if not cached
+  def tokenIterator: Iterator[Token] = {
+    return tokens.iterator;
+  }
 
   override def toString() = "Mention|id: %d, text: %s".format(this.id, this.text)
 
