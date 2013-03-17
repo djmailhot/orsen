@@ -16,8 +16,8 @@ object NERChainer extends Detector {
     //    Generate Mentions
 
     MongoDataInterface.resetDataInterface("orsen")
-
     dataInterface.getSentences().foreach { (sentence) =>
+      println("sentence " + sentence.id)
       val mentions = extractMentions(sentence.tokenIterator)
       val candidateMatches = mentions.foreach {
         (mention) =>
@@ -42,13 +42,13 @@ object NERChainer extends Detector {
       index += 1
     }
 
-    tokenClusters = tokenClusters.filter{(cluster) => cluster.first.nerTag == "PERSON" || cluster.first.nerTag == "LOCATION" || cluster.first.nerTag == "ORGANIZATION"}
-  //   tokenClusters.foreach{(cluster) =>
-  //   println("sentenceId: " + cluster.first.sentenceId)
-  //   println("index: " + cluster.first.index)
-  //   println("id: " + cluster.first.sentenceId * 100 + cluster.first.index)
-  //   println("---")
-  // }
+    tokenClusters = tokenClusters.filter{
+      (cluster) =>
+       (cluster.first.nerTag == "PERSON"
+      || cluster.first.nerTag == "LOCATION"
+      || cluster.first.nerTag == "ORGANIZATION"
+      || cluster.first.nerTag == "MISC")
+    }
     // The ID given to a new Mention is the same as the id of the first token
     var mentions = tokenClusters.map{(cluster) =>
       new Mention(cluster.first.sentenceId * 100 + cluster.first.index,

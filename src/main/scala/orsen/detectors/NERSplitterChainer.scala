@@ -5,11 +5,13 @@ import orsen.detectors._
 import orsen.output._
 import orsen.models._
 
+import java.io.{File, FileWriter}
 import scala.collection.mutable
 
 // TODO: Move differences from NERChainer and RawMatcher into abstract trait
 object NERSplitterChainer extends Detector {
 
+  var ignoredMentionFile = new FileWriter("/tmp/orsen_ignored_mentions")
   override def main(argument: Array[String]) {
     // Dump all entities to output
     // For all sentences
@@ -18,15 +20,17 @@ object NERSplitterChainer extends Detector {
     MongoDataInterface.resetDataInterface("orsen")
 
     dataInterface.getSentences().foreach { (sentence) =>
-      println("sentence " + sentence.id)
+      println("sentence: " + sentence.id)
       val mentions = extractMentions(sentence.tokenIterator)
       val candidateMatches = mentions.foreach {
         (mention) =>
+        println("\tmention: " + mention.text);
         var candidates = retrieveMatchingEntities(mention)
         candidates ++= retrieveFallbackEntities(mention)
         outputWriter.writeMentionWithEntitiesWithArray(mention, candidates)
       }
     }
+    ignoredMentionFile.close()
   }
 
   def extractMentions(tokens: Iterator[Token]): mutable.ArrayBuffer[Mention] = {
@@ -44,7 +48,25 @@ object NERSplitterChainer extends Detector {
       index += 1
     }
 
-    tokenClusters = tokenClusters.filter{(cluster) => cluster.first.nerTag == "PERSON" || cluster.first.nerTag == "LOCATION" || cluster.first.nerTag == "ORGANIZATION"}
+    tokenClusters.foreach{
+      (cluster) =>
+      if (!( cluster.first.nerTag == "PERSON"
+        || cluster.first.nerTag == "LOCATION"
+        || cluster.first.nerTag == "ORGANIZATION"
+        || cluster.first.nerTag == "MISC")) {
+        ignoredMentionFile.write("ignored " + new Mention(cluster.first.sentenceId * 100 + cluster.first.index,
+                  cluster.map((token) => token.text
+                 ).mkString(" "), cluster) + ", NERTAG: " + cluster.first.nerTag + "\n")
+      }
+    }
+
+    tokenClusters = tokenClusters.filter{
+      (cluster) =>
+       (cluster.first.nerTag == "PERSON"
+      || cluster.first.nerTag == "LOCATION"
+      || cluster.first.nerTag == "ORGANIZATION"
+      || cluster.first.nerTag == "MISC")
+    }
     // The ID given to a new Mention is the same as the id of the first token
     var mentions = tokenClusters.map{(cluster) =>
       new Mention(cluster.first.sentenceId * 100 + cluster.first.index,
@@ -76,6 +98,7 @@ object NERSplitterChainer extends Detector {
     try {
       //TODO generate subtokens
       var results = mutable.ArrayBuffer[(Entity, Double)]()
+      var found = mutable.Set[Entity]()
       var subtokens = mention.tokenIterator
       subtokens.foreach {
         (subtoken) => 
@@ -83,7 +106,13 @@ object NERSplitterChainer extends Detector {
         var entities = MongoDataInterface.getEntitiesBySubtoken(subtoken.text)//.toArray
         // println("\t" + entities.map((x)=>x.name).mkString(", "))
         // TODO: Find Dups
-        results ++= entities.map((entity) => (entity->0.0))
+        entities.foreach {
+          (entity) =>
+          if (!found.contains(entity)) {
+            results += entity->0.0
+            found += entity
+          }
+        }
       }
       // println("----")
       // println("\t" + results.map((x)=>x._1.name).mkString(", "))

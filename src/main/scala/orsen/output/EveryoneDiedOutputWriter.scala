@@ -3,6 +3,7 @@ package orsen.output
 import java.io.{File, FileWriter}
 import orsen.models._
 import org.scalamock.annotation.mock
+import scala.collection.mutable
 
 /** An UnorganizedOutputWriter writes all output to a single file.
   *
@@ -65,8 +66,11 @@ object EveryoneDiedOutputWriter extends OutputWriter {
   }
 
   def writeMentionAsArray(mention: Mention, candidates: Array[(Int, Double)]) {
-    val candidatesList = candidates.size +: candidates.foldLeft(Array[Any]()){
-      case(acc, candidate) => acc :+ candidate._1 :+ formatDouble(candidate._2)
+    var candidatesList = mutable.ArrayBuffer[Any](candidates.size)
+    candidates.foreach {
+      case(candidate) =>
+      candidatesList += candidate._1
+      candidatesList += formatDouble(candidate._2)
     }
     val information = (Array[Any]("mention", mention.id, mention.text, mention.tokenIds.size)
                                   ++ (mention.tokenIds ++ candidatesList))
