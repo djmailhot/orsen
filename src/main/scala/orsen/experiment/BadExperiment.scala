@@ -14,14 +14,15 @@ object BadExperiment {
 
   def main(arguments: Array[String]) {
     MongoDataInterface.resetDataInterface("orsen")
-    // val candidateIterator = getCandidateIterator()
 
-    // var goldStandard  = gatherGoldStandard()
-    // var computedLinks = findMentions(goldStandard, candidateIterator)
-    // var ratings = createRatings(goldStandard, computedLinks)
-    // var reverse = reverseRatings(ratings)
-    // writeReverseRatings(reverse)
-    // writeCandidateLists(candidateIterator, goldStandard)
+    val candidateIterator = getCandidateIterator()
+    var goldStandard  = gatherGoldStandard()
+    var computedLinks = findMentions(goldStandard, candidateIterator)
+    var ratings = createRatings(goldStandard, computedLinks)
+    var reverse = reverseRatings(ratings)
+    writeReverseRatings(reverse)
+    writeCandidateLists(candidateIterator, goldStandard)
+
     hell(scala.io.Source.fromFile(DataFilePath).mkString)
   }
 
@@ -55,7 +56,7 @@ object BadExperiment {
       val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
       println("working on mention " + pieces(1))
-      if (pieces(3) == "818") {
+      if (pieces(1) == "818") {
         ((mention, ((new Entity(9001, "kill me", ""), 9000.1))))
       } else {
         val candidateStartIndex =  (4 + pieces(3).toInt)
@@ -87,18 +88,17 @@ object BadExperiment {
     return results.iterator
   }
 
-  def hell(text: String) {
+ def hell(text: String) {
     var outputFile = new FileWriter("/tmp/orsen_candidate_list_output.txt")
     outputFile.write("Mention\t gold =>\tCandidate 1, Candidate 2, Candidate 3, ...\n")
     var goldStandard  = gatherGoldStandard().withDefaultValue(new Entity(10, "<Entity Not Found>", ""))
     var results =  mutable.ArrayBuffer[(String, (Entity, Double))]()
     text.split("\n").foreach {
       (line) =>
-      var output = ""
       val pieces = line.split("""\|M461CD3L1M373RL0L\|""")
       val mention = pieces(2)
       println("working on mention " + pieces(1))
-      if (pieces(3) != "818") {
+      if (pieces(1) != "818") {
         val candidateStartIndex =  (4 + pieces(3).toInt)
         val candidateCount = pieces(candidateStartIndex).toInt
         val candidates     = pieces.slice(candidateStartIndex + 1, candidateStartIndex + 1 + candidateCount * 2)
@@ -106,18 +106,18 @@ object BadExperiment {
         var entities      = mutable.ArrayBuffer[Entity]()
         var probabilities = mutable.ArrayBuffer[Double]()
 
-        output += mention + "\t" + goldStandard(mention) + "\t=>\t"
+        outputFile.write("MENTION: " + mention + "\t" + goldStandard(mention) + ":")
         candidates.zipWithIndex.foreach {
           case (entityOrProbability, index) =>
           if (index % 2 == 0) {
             // Entity Id
             val id = entityOrProbability.toInt
             // entities += new Entity(id, id.toString, "")
-              output += "\t" + MongoDataInterface.getEntityById(id).name
+              outputFile.write("\n\t\t" + MongoDataInterface.getEntityById(id))
           }
         }
       }
-      outputFile.write(output + "\n")
+      outputFile.write("\n")
     }
     outputFile.close()
   }
@@ -155,22 +155,41 @@ object BadExperiment {
                     computedLinks: mutable.Map[String, mutable.ArrayBuffer[(Entity, Double)]]):
                       mutable.Map[String, Int] = {
     var ratings = mutable.Map[String, Int]()
+    var outputFile = new FileWriter("/tmp/orsen_gold_rankings.txt")
     goldStandard.foreach {
       (standard) =>
       val mention = standard._1
       val trueEntity = standard._2
-      val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
-      candidates.zipWithIndex.foreach {
-        case(((candidate, _)), index) =>
-        if (candidate == trueEntity) {
+      if (!computedLinks.contains(mention)) {
+        // There is no mention that matches the gold standard's 'mention'
+        ratings.put(mention, -2)
+        outputFile.write("%s %d\n".format(mention, -2))
+      } else {
+        val candidates = computedLinks.get(mention) getOrElse mutable.ArrayBuffer()
+        var index = findMatchingCandidate(candidates, trueEntity)
+        if (index != -11) { // Not Found
           ratings.put(mention, index)
+          outputFile.write("%s %d\n".format(mention, index))
+        }
+        // Doesn't exist
+        if (!ratings.contains(mention)) {
+          ratings.put(mention, -1)
+          outputFile.write("%s %d\n".format(mention, -1))
         }
       }
-      // Doesn't exist
-      if (!ratings.contains(mention))
-        ratings.put(mention, -1)
     }
+    outputFile.close()
     return ratings
+  }
+
+  def findMatchingCandidate(candidates: mutable.ArrayBuffer[(Entity, Double)], trueEntity: Entity): Int = {
+    candidates.zipWithIndex.foreach {
+      case(((candidate, _)), index) =>
+      if (candidate == trueEntity) {
+        return index
+      }
+    }
+    return -11
   }
 
   def reverseRatings(ratings: mutable.Map[String, Int]): mutable.Map[Int, Int] = {
@@ -182,11 +201,14 @@ object BadExperiment {
   }
 
   def writeReverseRatings(reverse: mutable.Map[Int, Int]) {
-    printf("# GraphIndex Rank Quantity\n")
-    reverse.toArray.zipWithIndex.foreach {
-      case ((-1, quantity), index) => printf("%d %s %d\n", index, "Missing", quantity)
-      case ((rank, quantity), index) => printf("%d %d %d\n", index, rank, quantity)
+    var outputFile = new FileWriter("/tmp/orsen_bad_experiment_table.txt")
+    outputFile.write("# GraphIndex Rank Quantity\n")
+    reverse.toArray.sortWith(_._1<_._1).zipWithIndex.foreach {
+      case ((-1, quantity), index) => outputFile.write("%d %s %d\n".format(index, "No Matching Candidate", quantity))
+      case ((-2, quantity), index) => outputFile.write("%d %s %d\n".format(index, "No Matching Mention", quantity))
+      case ((rank, quantity), index) => outputFile.write("%d %d %d\n".format(index, rank, quantity))
     }
+    outputFile.close()
   }
 
   def writeCandidateLists(candidates: Iterator[(String, (Entity, Double))], gold: Map[String, Entity]) = {
@@ -194,15 +216,15 @@ object BadExperiment {
     var outputFile = new FileWriter("/tmp/orsen_candidate_list_output.txt")
     outputFile.write("Mention\t gold =>\tCandidate 1, Candidate 2, Candidate 3, ...\n")
     var prev:String = "stub@#$@#$"
-    var candidateNames:Array[String] = Array[String]()
+    var candidateNames:mutable.ArrayBuffer[String] = mutable.ArrayBuffer[String]()
     candidates.foreach {
       case (mention, ((entity, probability))) => 
       if (prev != mention) {
         outputFile.write("%s\t %s =>\t%s\n".format(prev, golden(prev).name,  candidateNames.mkString("\t")))
-        candidateNames = Array[String]()
-        candidateNames :+= entity.name
+        candidateNames = mutable.ArrayBuffer[String]()
+        candidateNames += entity.name
       } else {
-        candidateNames :+= entity.name
+        candidateNames += entity.name
       }
       prev = mention
     }
