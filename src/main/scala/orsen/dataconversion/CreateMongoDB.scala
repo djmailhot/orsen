@@ -153,6 +153,10 @@ object CreateMongoDB {
     parseTokenizedData(line, collection, lastId, "nertag")
   }
 
+  def parseTokenSpans(line: String, collection: MongoCollection, lastId: Int): Int = {
+    parseTokenizedData(line, collection, lastId, "span")
+  }
+
 
   def getIdCount(counters: MongoCollection, counterName: String): Int = {
     val query: MongoDBObject = MongoDBObject("_id" -> counterName)
@@ -207,6 +211,46 @@ object CreateMongoDB {
   }
 
 
+  def addPOSTreesToSentences(databasename: String = "orsen", databasepath: String = "prod") {
+    val dataPath: String = databasepath match {
+      case "prod" => "data/prod/"
+      case "test" => "data/test/"
+      case "experiment" => "data/experiment/"
+      case _ => databasepath
+    }
+    val mongoDB: MongoDB = MongoClient()(databasename)
+
+    val postreesColl: MongoCollection = mongoDB("postrees")
+    postreesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> 1) )
+
+    import edu.berkeley.nlp.assignments.PCFGParserTester
+
+    val args = Array("-trainpath", "data/wsj/", "-verbose")
+    val parser = PCFGParserTester.trainParser(args)
+    val testSentences = PCFGParserTester.extractSentences(dataPath) // extract test sentences
+    
+    import scala.collection.JavaConversions._
+    testSentences.foreach {
+      case (id, sentence) =>
+          val rendered: String = PCFGParserTester.parseSentence(parser, sentence)
+
+          val query: MongoDBObject = MongoDBObject("sentenceId" -> id)
+          var dbRecord: MongoDBObject = postreesColl.findOne(query) match {
+            case Some(record) => record
+            case None => null
+          }
+
+          if (dbRecord == null) {
+            dbRecord = MongoDBObject("sentenceId" -> id, "posTree" -> rendered)
+            postreesColl += dbRecord
+          } else {
+            dbRecord += "posTree" -> rendered
+            postreesColl.update(query, dbRecord)
+          }
+    }
+  }
+
+
   def createDatabase(databasename: String = "orsen", databasepath: String = "prod") {
     val dataPath: String = databasepath match {
       case "prod" => "data/prod/"
@@ -232,6 +276,7 @@ object CreateMongoDB {
     currTokenId = extractData(dataPath + "sentences.tokens", parseTokens, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordpos", parsePOStags, tokensColl, currTokenId)
     currTokenId = extractData(dataPath + "sentences.stanfordner", parseNERtags, tokensColl, currTokenId)
+    currTokenId = extractData(dataPath + "sentences.tokenSpans", parseTokenSpans, tokensColl, currTokenId)
 
     updateIdCount(countersColl, "tokenId", currTokenId)
   }

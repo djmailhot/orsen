@@ -7,7 +7,10 @@ package orsen.models
   * @param id A unique id for this Token
   * @param text The text of this token
   */
-class Token(_id: Int, _text: String, _sentenceId: Int, _posTag: String, _nerTag: String) {
+class Token(_id: Int, _text: String, _sentenceId: Int, _spanStart: Int, _spanEnd: Int,  _posTag: String, _nerTag: String) {
+  def this(_id: Int, _text: String, _sentenceId: Int, _posTag: String, _nerTag: String) {
+    this(_id, _text, _sentenceId, -1, -1, _posTag, _nerTag)
+  }
   def this(_id: Int, _text: String, _sentenceId: Int) {
     this(_id, _text, _sentenceId, Token.UNKNOWN_TOKEN, Token.UNKNOWN_TOKEN)
   }
@@ -23,15 +26,22 @@ class Token(_id: Int, _text: String, _sentenceId: Int, _posTag: String, _nerTag:
   /** The Named Entity Recognizer tag for this Token */
   def nerTag: String = _nerTag
 
+  def spanStart: Int = _spanStart
+  def spanEnd: Int = _spanEnd
+
   var index: Int = -1
 
 
   def addPOStag(_posTag: String): Token = {
-    return new Token(id, text, sentenceId, _posTag, nerTag)
+    return new Token(id, text, sentenceId, spanStart, spanEnd, _posTag, nerTag)
   }
 
   def addNERtag(_nerTag: String): Token = {
-    return new Token(id, text, sentenceId, posTag, _nerTag)
+    return new Token(id, text, sentenceId, spanStart, spanEnd, posTag, _nerTag)
+  }
+
+  def addSpan(_spanStart: Int, _spanEnd: Int): Token = {
+    return new Token(id, text, sentenceId, _spanStart, _spanEnd, posTag, nerTag)
   }
 
 

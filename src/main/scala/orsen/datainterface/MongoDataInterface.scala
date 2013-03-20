@@ -126,6 +126,21 @@ object MongoDataInterface extends DataInterface {
     return new DBIterator[CrosswikiEntry](cursor, deserializeCrosswikiEntry)
   }
 
+
+
+  import edu.berkeley.nlp.ling.Tree
+  def getPOSTreeBySentence(sentenceId: Int): Tree[String] = {
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("sentenceId" -> sentenceId), "postrees")
+    return deserializePOSTree(dbRecord)
+  }
+
+  private def deserializePOSTree(dbRecord: MongoDBObject): Tree[String] = {
+    val rendered = dbRecord.as[String]("posTree")
+    return edu.berkeley.nlp.assignments.PCFGParserTester.parseTree(rendered)
+  }
+
+
+
   private def fetchOne(query: MongoDBObject, collectionName: String): MongoDBObject = {
     val collection: MongoCollection = mongoDB(collectionName)
     val dbRecord: MongoDBObject = collection.findOne(query) match {
@@ -138,7 +153,8 @@ object MongoDataInterface extends DataInterface {
 
   private def deserializeSentence(dbRecord: MongoDBObject): Sentence = {
     val id = dbRecord.as[Int]("sentenceId")
-    return new Sentence(id)
+    val text = dbRecord.as[String]("text")
+    return new Sentence(id, text)
   }
 
   private def deserializeToken(dbRecord: MongoDBObject): Token = {
@@ -147,7 +163,8 @@ object MongoDataInterface extends DataInterface {
     val text = dbRecord.as[String]("text")
     val posTag = dbRecord.as[String]("postag")
     val nerTag = dbRecord.as[String]("nertag")
-    val token = new Token(tId, text, sId).addPOStag(posTag).addNERtag(nerTag)
+    val span = dbRecord.as[String]("span").split(":")
+    val token = new Token(tId, text, sId).addPOStag(posTag).addNERtag(nerTag).addSpan(span(0).toInt, span(1).toInt)
     return token
   }
 

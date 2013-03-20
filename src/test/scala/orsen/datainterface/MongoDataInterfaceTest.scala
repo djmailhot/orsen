@@ -3,7 +3,6 @@ package test.orsen.datainterface
 import java.io.IOException
 import java.util.Random
 import orsen.dataconversion.CreateMongoDB
-import orsen.dataconversion.CreateCrosswikiDB
 import orsen.datainterface.DataInterface
 import orsen.datainterface.MongoDataInterface
 import orsen.models._

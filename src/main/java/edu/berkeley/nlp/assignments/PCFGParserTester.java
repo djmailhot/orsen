@@ -7,6 +7,7 @@ import edu.berkeley.nlp.parser.EnglishPennTreebankParseEvaluator;
 import edu.berkeley.nlp.util.*;
 
 import java.util.*;
+import java.io.*;
 
 /**
  * Harness for PCFG Parser project.
@@ -909,7 +910,8 @@ for (int i=0; i < backPointers.length; i++) {
     Map<String, String> argMap = CommandLineUtils.simpleCommandLineParser(args);
 
     // Set up default parameters and settings
-    String basePath = ".";
+    String trainPath = ".";
+    String testPath = ".";
     boolean verbose = true;
     String testMode = "validate";
     //int maxTrainLength = 1000;
@@ -918,9 +920,13 @@ for (int i=0; i < backPointers.length; i++) {
     int maxTestLength = 10;
 
     // Update defaults using command line specifications
-    if (argMap.containsKey("-path")) {
-      basePath = argMap.get("-path");
-      System.out.println("Using base path: " + basePath);
+    if (argMap.containsKey("-trainpath")) {
+      trainPath = argMap.get("-trainpath");
+      System.out.println("Using train data path: " + trainPath);
+    }
+    if (argMap.containsKey("-testpath")) {
+      testPath = argMap.get("-testpath");
+      System.out.println("Using test data path: " + testPath);
     }
     if (argMap.containsKey("-test")) {
       testMode = "test";
@@ -953,22 +959,26 @@ for (int i=0; i < backPointers.length; i++) {
     }
 
     System.out.print("Loading training trees (sections 2-21) ... ");
-    List<Tree<String>> trainTrees = readTrees(basePath, 200, 2199, maxTrainLength);
+    List<Tree<String>> trainTrees = readTrees(trainPath, 200, 2199, maxTrainLength);
     System.out.println("done. (" + trainTrees.size() + " trees)");
     List<Tree<String>> testTrees = null;
     if (testMode.equalsIgnoreCase("validate")) {
       System.out.print("Loading validation trees (section 22) ... ");
-      testTrees = readTrees(basePath, 2200, 2299, maxTestLength);
+      testTrees = readTrees(trainPath, 2200, 2299, maxTestLength);
     } else {
       System.out.print("Loading test trees (section 23) ... ");
-      testTrees = readTrees(basePath, 2300, 2399, maxTestLength);
+      testTrees = readTrees(trainPath, 2300, 2399, maxTestLength);
     }
     System.out.println("done. (" + testTrees.size() + " trees)");
 
     Parser parser = new CKYParser(trainTrees);
     //Parser parser = new BaselineParser(trainTrees);
 
-    testParser(parser, testTrees, verbose);
+    Map<Integer, Tree<String>> stanfordTrees = extractStanfordTrees(testPath); // extract stanfordTrees
+    Map<Integer, List<String>> testSentences = extractSentences(testPath); // extract test sentences
+
+    //testParser(parser, testTrees, verbose);
+    runParser(parser, testSentences, stanfordTrees, verbose);
   }
 
   private static void testParser(Parser parser, List<Tree<String>> testTrees, boolean verbose) {
@@ -985,6 +995,21 @@ for (int i=0; i < backPointers.length; i++) {
     eval.display(true);
   }
 
+  private static void runParser(Parser parser, Map<Integer, List<String>> testSentences, Map<Integer, Tree<String>> testTrees, boolean verbose) {
+    EnglishPennTreebankParseEvaluator.LabeledConstituentEval<String> eval = new EnglishPennTreebankParseEvaluator.LabeledConstituentEval<String>(Collections.singleton("ROOT"), new HashSet<String>(Arrays.asList(new String[]{"''", "``", ".", ":", ","})));
+    for (Integer key : testSentences.keySet()) {
+      List<String> testSentence = testSentences.get(key);
+      //Tree<String> testTree = testTrees.get(key);
+      Tree<String> guessedTree = parser.getBestParse(testSentence);
+      if (verbose) {
+        System.out.println("Guess:\n" + Trees.PennTreeRenderer.render(guessedTree));
+      //  System.out.println("Gold:\n" + Trees.PennTreeRenderer.render(testTree));
+      }
+      //eval.evaluate(guessedTree, testTree);
+    }
+    //eval.display(true);
+  }
+
   private static List<Tree<String>> readTrees(String basePath, int low, int high, int maxLength) {
     Collection<Tree<String>> trees = PennTreebankReader.readTrees(basePath, low, high);
     // normalize trees
@@ -998,5 +1023,125 @@ for (int i=0; i < backPointers.length; i++) {
       normalizedTreeList.add(normalizedTree);
     }
     return normalizedTreeList;
+  }
+
+  public static Parser trainParser(String[] args) {
+    // Parse command line flags and arguments
+    Map<String, String> argMap = CommandLineUtils.simpleCommandLineParser(args);
+
+    // Set up default parameters and settings
+    String trainPath = ".";
+    String testPath = ".";
+    boolean verbose = true;
+    String testMode = "validate";
+    int maxTrainLength = 1000;
+    int maxTestLength = 40;
+
+    // Update defaults using command line specifications
+    if (argMap.containsKey("-trainpath")) {
+      trainPath = argMap.get("-trainpath");
+      System.out.println("Using train data path: " + trainPath);
+    }
+    if (argMap.containsKey("-test")) {
+      testMode = "test";
+      System.out.println("Testing on final test data.");
+    } else {
+      System.out.println("Testing on validation data.");
+    }
+    if (argMap.containsKey("-maxTrainLength")) {
+      maxTrainLength = Integer.parseInt(argMap.get("-maxTrainLength"));
+    }
+    System.out.println("Maximum length for training sentences: " + maxTrainLength);
+    if (argMap.containsKey("-maxTestLength")) {
+      maxTestLength = Integer.parseInt(argMap.get("-maxTestLength"));
+    }
+    System.out.println("Maximum length for test sentences: " + maxTestLength);
+    if (argMap.containsKey("-verbose")) {
+      verbose = true;
+    }
+    if (argMap.containsKey("-quiet")) {
+      verbose = false;
+    }
+    if (argMap.containsKey("-m")) {
+      markovization = true;
+    }
+    if (argMap.containsKey("-TAG-PA")) {
+      splitPreterminals = true;
+    }
+    if (argMap.containsKey("-u")) {
+      splitUnaryRewrites = true;
+    }
+
+    System.out.print("Loading training trees (sections 2-21) ... ");
+    List<Tree<String>> trainTrees = readTrees(trainPath, 200, 2199, maxTrainLength);
+    System.out.println("done. (" + trainTrees.size() + " trees)");
+    List<Tree<String>> testTrees = null;
+    if (testMode.equalsIgnoreCase("validate")) {
+      System.out.print("Loading validation trees (section 22) ... ");
+      testTrees = readTrees(trainPath, 2200, 2299, maxTestLength);
+    } else {
+      System.out.print("Loading test trees (section 23) ... ");
+      testTrees = readTrees(trainPath, 2300, 2399, maxTestLength);
+    }
+    System.out.println("done. (" + testTrees.size() + " trees)");
+
+    return new CKYParser(trainTrees);
+  }
+
+  public static String parseSentence(Parser parser, List<String> sentence) {
+    Tree<String> guessedTree = parser.getBestParse(sentence);
+    return Trees.PennTreeRenderer.render(guessedTree);
+  }
+
+  public static Tree<String> parseTree(String renderedTree) {
+    Iterator<Tree<String>> reader = new Trees.PennTreeReader(new BufferedReader(new StringReader(renderedTree)));
+    return reader.next();
+  }
+
+  public static Map<Integer, List<String>> extractSentences(String dataPath) {
+    Map<Integer, List<String>> sentenceMap = new HashMap<Integer, List<String>>();
+    BufferedReader reader = null;
+    try {
+      File file = new File(dataPath + "sentences.tokens");
+      reader = new BufferedReader(new FileReader(file));
+      String line = reader.readLine();
+      while(line != null) {
+        String[] parts = line.split("\t");
+        int id = Integer.parseInt(parts[0]);
+        List<String> tokens = Arrays.asList(parts[1].split(" "));
+        sentenceMap.put(id, tokens);
+        line = reader.readLine();
+      }
+    } catch (FileNotFoundException e) {
+      System.out.println(e.getStackTrace());
+    } catch (IOException e) {
+      System.out.println(e.getStackTrace());
+    }
+    return sentenceMap;
+  }
+
+  private static Map<Integer, Tree<String>> extractStanfordTrees(String dataPath) {
+    Map<Integer, Tree<String>> treeMap = new HashMap<Integer, Tree<String>>();
+    BufferedReader reader = null;
+    try {
+      File file = new File(dataPath + "sentences.cj");
+      reader = new BufferedReader(new FileReader(file));
+      String line = reader.readLine();
+      while(line != null) {
+        String[] parts = line.split("\t");
+        int id = Integer.parseInt(parts[0]);
+
+        List<String> tokens = Arrays.asList(parts[1].split(" "));
+
+        treeMap.put(id, null);
+
+        line = reader.readLine();
+      }
+    } catch (FileNotFoundException e) {
+      System.out.println(e.getStackTrace());
+    } catch (IOException e) {
+      System.out.println(e.getStackTrace());
+    }
+    return treeMap;
   }
 }
