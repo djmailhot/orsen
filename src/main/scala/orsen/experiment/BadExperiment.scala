@@ -21,9 +21,9 @@ object BadExperiment {
     var ratings = createRatings(goldStandard, computedLinks)
     var reverse = reverseRatings(ratings)
     writeReverseRatings(reverse)
-    writeCandidateLists(candidateIterator, goldStandard)
 
-    hell(scala.io.Source.fromFile(DataFilePath).mkString)
+    writeCandidateLists(candidateIterator, goldStandard)
+    writeHumanReadableCandidateLists(scala.io.Source.fromFile(DataFilePath).mkString)
   }
 
   /* return a Map[Mention, Entity] of mention/entity pairs that are known to be genuine */
@@ -88,7 +88,7 @@ object BadExperiment {
     return results.iterator
   }
 
- def hell(text: String) {
+ def writeHumanReadableCandidateLists(text: String) {
     var outputFile = new FileWriter("/tmp/orsen_candidate_list_output.txt")
     outputFile.write("Mention\t gold =>\tCandidate 1, Candidate 2, Candidate 3, ...\n")
     var goldStandard  = gatherGoldStandard().withDefaultValue(new Entity(10, "<Entity Not Found>", ""))

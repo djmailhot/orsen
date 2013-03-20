@@ -25,6 +25,8 @@ class MentionTest extends FunSuite {
     assert(mention.id === 39)
     assert(mention.text === "banana")
     assert(mention.tokenIds === Array(39))
+    var it = mention.tokenIterator
+    assert(it.size === 0)
   }
 
   test("Equals and Hashcode should report equality for different Mentions of same ID") {
@@ -32,6 +34,16 @@ class MentionTest extends FunSuite {
     var mention_two = new Mention(39, "banana", 1)
     assert(mention_one.hashCode() === mention_two.hashCode())
     assert(mention_one === mention_two)
+  }
+
+  test("Token Cache if used tokens constructor") {
+    var mention = new Mention(39, "banana", Array((new Token(1, "", 1)),
+                                                  (new Token(2, "", 1)),
+                                                  (new Token(3, "", 1))))
+    var it = mention.tokenIterator
+    assert(it.next === new Token(1, "", 1))
+    assert(it.next === new Token(2, "", 1))
+    assert(it.next === new Token(3, "", 1))
   }
 
 }
