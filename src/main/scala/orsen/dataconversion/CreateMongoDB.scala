@@ -81,6 +81,32 @@ object CreateMongoDB {
     return id
   }
 
+
+  def parsePOSTree(line: String, collection: MongoCollection, lastId: Int): Int = {
+    val parse = line.split("\t")
+    val id: Int = parse(0).toInt
+    val tree = parse(1)
+
+
+    val query: MongoDBObject = MongoDBObject("sentenceId" -> id)
+    var dbRecord: MongoDBObject = collection.findOne(query) match {
+      case Some(record) => record
+      case None => null
+    }
+
+    if (dbRecord == null) {
+      // if there is no object for this sentence id, add a new object to the collection
+      dbRecord = MongoDBObject("sentenceId" -> id)
+      dbRecord += "posTree" -> tree
+      collection += dbRecord
+    } else {
+      // if there is an object for this sentence id, update it in the collection
+      dbRecord += "posTree" -> tree
+      collection.update(query, dbRecord)
+    }
+    return id
+  }
+
   
   def parseTokenizedData(line: String, collection: MongoCollection, lastId: Int, fieldName: String): Int = {
     var tokenId = lastId
@@ -267,6 +293,7 @@ object CreateMongoDB {
     val sentencesColl: MongoCollection = mongoDB("sentences")
     sentencesColl.ensureIndex( MongoDBObject("sentenceId" -> 1), MongoDBObject("unique" -> true))
     currSentenceId = extractData(dataPath + "sentences.text", parseText, sentencesColl, currSentenceId)
+    currSentenceId = extractData(dataPath + "sentences.cj", parsePOSTree, sentencesColl, currSentenceId)
     updateIdCount(countersColl, "sentenceId", currSentenceId)
 
     

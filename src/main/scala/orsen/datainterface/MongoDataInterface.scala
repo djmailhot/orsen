@@ -129,8 +129,8 @@ object MongoDataInterface extends DataInterface {
 
 
   import edu.berkeley.nlp.ling.Tree
-  def getPOSTreeBySentence(sentenceId: Int): Tree[String] = {
-    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("sentenceId" -> sentenceId), "postrees")
+  def getPOSTreeBySentence(sentenceId: Int, collectionName: String = "sentences"): Tree[String] = {
+    val dbRecord: MongoDBObject = fetchOne(MongoDBObject("sentenceId" -> sentenceId), collectionName)
     return deserializePOSTree(dbRecord)
   }
 

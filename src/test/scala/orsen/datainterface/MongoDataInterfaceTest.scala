@@ -73,6 +73,14 @@ class MongoDataInterfaceTest extends FunSuite with BeforeAndAfterAll {
     }
   }
 
+  test("getPOSTreeBySentence on sentences collection returns a Tree object") {
+    try {
+      val tree = dataInterface.getPOSTreeBySentence(4794, "sentences")
+      assert(tree.isInstanceOf[edu.berkeley.nlp.ling.Tree[String]])
+    } catch {
+      case ioe: IOException => fail(ioe.toString())
+    }
+  }
 
   /**********
    * Tokens *
