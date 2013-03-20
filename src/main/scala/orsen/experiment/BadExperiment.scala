@@ -21,7 +21,8 @@ object BadExperiment {
     var ratings = createRatings(goldStandard, computedLinks)
     var reverse = reverseRatings(ratings)
     writeReverseRatings(reverse)
-    // writeCandidateLists(candidateIterator, goldStandard)
+
+    writeCandidateLists(candidateIterator, goldStandard)
     writeHumanReadableCandidateLists(scala.io.Source.fromFile(DataFilePath).mkString)
   }
 
