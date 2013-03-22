@@ -76,6 +76,13 @@ object NERPOSSplitterChainer extends Detector {
       || cluster.first.nerTag == "MISC")
     }
 
+    // putting original mentions in Array
+    var mentions = mutable.ArrayBuffer[Mention]()
+    tokenClusters.foreach{(cluster) =>
+      val mentionText = sentence.text.slice(cluster.first.spanStart, cluster.last.spanEnd)
+      mentions.add(new Mention(cluster.first.sentenceId * 10000 + cluster.first.index, mentionText, cluster))
+    }
+
     print("exploring POS trees")
     // work with POS tag trees
     val postree: Tree[String] = MongoDataInterface.getPOSTreeBySentence(sentence.id)
@@ -91,7 +98,6 @@ object NERPOSSplitterChainer extends Detector {
     val treeToTokenMap: mutable.Map[Tree[String],Token] = mutable.HashMap[Tree[String],Token]()
     recordTreeLinks(sentence.tokenIterator, postree, treeToTokenMap)
 
-    var mentions = mutable.ArrayBuffer[Mention]()
     // The ID given to a new Mention is the same as the id of the first token
     tokenClusters.foreach{(cluster) =>
       print(".")
@@ -135,7 +141,7 @@ object NERPOSSplitterChainer extends Detector {
       val mentionTokens = tokenList.toArray
 
       val mentionText = sentence.text.slice(tokenList.first.spanStart, tokenList.last.spanEnd)
-      mentions.add(new Mention(tokenList.first.sentenceId * 100 + tokenList.first.index, mentionText, mentionTokens))
+      mentions.add(new Mention((tokenList.first.sentenceId * 100 + tokenList.first.index) * 100, mentionText, mentionTokens))
     }
     println(sentence.id)
     return mentions
