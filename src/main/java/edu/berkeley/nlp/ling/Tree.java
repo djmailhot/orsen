@@ -12,6 +12,7 @@ import java.util.*;
 public class Tree<L> {
   L label;
   List<Tree<L>> children;
+  private int hashCode;
 
   public List<Tree<L>> getChildren() {
     return children;
@@ -115,6 +116,16 @@ public class Tree<L> {
     StringBuilder sb = new StringBuilder();
     toStringBuilder(sb);
     return sb.toString();
+  }
+
+  public int hashCode() {
+    if (hashCode == 0) {
+      hashCode = label.hashCode() + 1;
+      for(Tree<L> child : children) {
+        hashCode *= 97 + child.hashCode();
+      }
+    }
+    return hashCode;
   }
 
   public void toStringBuilder(StringBuilder sb) {
