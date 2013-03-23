@@ -27,6 +27,6 @@ sudo apt-get install oracle-java7-set-default
 
 # get our repo
 sudo apt-get install git
-git clone https://github.com/DavidMah/orsen.git
+git clone https://github.com/djmailhot/orsen.git
 
 

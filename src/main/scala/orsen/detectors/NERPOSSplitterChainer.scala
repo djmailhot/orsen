@@ -19,11 +19,22 @@ object NERPOSSplitterChainer extends Detector {
     // For all sentences
     //    Generate Mentions
 
+    var sourceCollection = "sentences"
+    val index = argument.indexOf("-parser")
+    if (index != -1) {
+      val parser = argument(index + 1)
+      if (parser == "cj") {
+        sourceCollection = "sentences"
+      } else if (parser == "cky") {
+        sourceCollection = "postrees"
+      }
+    }
+
     MongoDataInterface.resetDataInterface("orsen")
 
     dataInterface.getSentences().foreach { (sentence) =>
       println("sentence: " + sentence.id)
-      val mentions = extractMentions(sentence)
+      val mentions = extractMentions(sentence, sourceCollection)
       val candidateMatches = mentions.foreach {
         (mention) =>
         println("\tmention: " + mention.text);
@@ -35,7 +46,7 @@ object NERPOSSplitterChainer extends Detector {
     ignoredMentionFile.close()
   }
 
-  def extractMentions(sentence: Sentence): mutable.ArrayBuffer[Mention] = {
+  def extractMentions(sentence: Sentence, sourceCollection: String = "sentences"): mutable.ArrayBuffer[Mention] = {
     val tokens: Iterator[Token] = sentence.tokenIterator
 
     // build up lists of consecutive NER tagged tokens
@@ -85,7 +96,7 @@ object NERPOSSplitterChainer extends Detector {
 
     print("exploring POS trees")
     // work with POS tag trees
-    val postree: Tree[String] = MongoDataInterface.getPOSTreeBySentence(sentence.id)
+    val postree: Tree[String] = MongoDataInterface.getPOSTreeBySentence(sentence.id, sourceCollection)
     val treeToParentMap: mutable.Map[Tree[String],Tree[String]] = mutable.HashMap[Tree[String],Tree[String]]()
     recordParentLinks(postree, treeToParentMap)
 
